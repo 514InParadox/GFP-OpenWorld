@@ -1,7 +1,6 @@
 #include "triangle.hpp"
 
-Triangle::Triangle(const std::vector<Vertex> vertices):
-    _vertices(vertices), _indices({0, 1, 2})
+Triangle::Triangle(const std::vector<Vertex> vertices) : Model(vertices, std::vector<uint32_t>{0, 1, 2})
     {
     glGenVertexArrays(1, &_vao);
     glGenBuffers(1, &_vbo);
@@ -50,10 +49,7 @@ Triangle::~Triangle() {
     }
 }
 
-Triangle::Triangle(Triangle&& rhs) noexcept {
-    _vertices = std::move(rhs._vertices);
-    _indices = std::move(rhs._indices);
-
+Triangle::Triangle(Triangle&& rhs) noexcept : Model(std::move(rhs._vertices), std::move(rhs._indices)) {
     _vao = rhs._vao;
     _vbo = rhs._vbo;
     _ebo = rhs._ebo;
@@ -61,10 +57,4 @@ Triangle::Triangle(Triangle&& rhs) noexcept {
     rhs._vao = 0;
     rhs._vbo = 0;
     rhs._ebo = 0;
-}
-
-void Triangle::draw() {
-    glBindVertexArray(_vao);
-    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(_indices.size()), GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
 }

@@ -1,14 +1,16 @@
 #include "triangleApp.hpp"
 #include "utils/vertex.hpp"
 
-const std::string vertexShaderAddr   = "shader/vertex/triangle.vert";
-const std::string fragmentShaderAddr = "shader/fragment/triangle.frag";
+const std::string vertexShaderAddr   = "shader/vertex/triangleApp.vert";
+const std::string fragmentShaderAddr = "shader/fragment/triangleApp.frag";
+
+const std::string textureAddr = "resource/texture/woodBox.jpg";
 
 TriangleApp::TriangleApp(const Options &options) : Application(options) {
-    triangle.reset(new Triangle({
+    _triangle.reset(new Triangle({
         Vertex(glm::vec3(-0.6f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)),
-        Vertex(glm::vec3(0.6f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)),
-        Vertex(glm::vec3(0.0f, 0.8f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f))
+        Vertex(glm::vec3(0.6f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f)),
+        Vertex(glm::vec3(0.0f, 0.8f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 1.0f))
     }));
 
     initShader();
@@ -34,7 +36,7 @@ void TriangleApp::renderFrame() {
 
     _shader->setUniformVec4("inputColor", glm::vec4(_color, 1.0f));
 
-    triangle->draw();
+    _triangle->draw();
 
     ++twicks;
     // TODO: get real time instead of app twicks

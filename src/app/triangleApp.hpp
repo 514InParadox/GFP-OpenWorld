@@ -18,7 +18,7 @@ public:
     void renderFrame() override;
 
 private:
-    std::unique_ptr<Triangle> triangle;
+    std::unique_ptr<Model> _triangle;
 
     glm::vec3 _color;
 

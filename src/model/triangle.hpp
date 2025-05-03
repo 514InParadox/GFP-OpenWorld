@@ -5,8 +5,9 @@
 #include <vector>
 
 #include "utils/vertex.hpp"
+#include "model.hpp"
 
-class Triangle {
+class Triangle : public Model {
 public:
     Triangle(const std::vector<Vertex> vertices);
 
@@ -15,12 +16,7 @@ public:
     Triangle(const Triangle& rhs) = delete;
 
     Triangle(Triangle&& rhs) noexcept;
-
-    void draw();
 private:
-    std::vector<Vertex> _vertices;
-    std::vector<uint32_t> _indices;
-
     GLuint _vao = 0;
     GLuint _vbo = 0;
     GLuint _ebo = 0;

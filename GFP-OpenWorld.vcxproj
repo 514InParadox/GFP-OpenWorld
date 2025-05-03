@@ -132,30 +132,54 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="glad.c" />
+    <ClCompile Include="include\glad\glad.c" />
+    <ClCompile Include="include\stb\stb_image.cpp" />
+    <ClCompile Include="include\tinyobjloader\tiny_obj_loader.cc" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\app\application.cpp" />
+    <ClCompile Include="src\app\initSceneApp.cpp" />
     <ClCompile Include="src\app\triangleApp.cpp" />
     <ClCompile Include="src\model\model.cpp" />
     <ClCompile Include="src\model\monkeyHead.cpp" />
     <ClCompile Include="src\model\triangle.cpp" />
     <ClCompile Include="src\test\hello.cpp" />
+    <ClCompile Include="src\utils\camera.cpp" />
+    <ClCompile Include="src\utils\framebuffer.cpp" />
+    <ClCompile Include="src\utils\fullscreen_quad.cpp" />
     <ClCompile Include="src\utils\glsl_program.cpp" />
+    <ClCompile Include="src\utils\instanced_model.cpp" />
+    <ClCompile Include="src\utils\skybox.cpp" />
+    <ClCompile Include="src\utils\texture.cpp" />
+    <ClCompile Include="src\utils\texture2d.cpp" />
+    <ClCompile Include="src\utils\texture_cubemap.cpp" />
     <ClCompile Include="src\utils\transform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\app\application.hpp" />
+    <ClInclude Include="src\app\initSceneApp.hpp" />
     <ClInclude Include="src\app\triangleApp.hpp" />
     <ClInclude Include="src\model\model.hpp" />
     <ClInclude Include="src\model\monkeyHead.hpp" />
     <ClInclude Include="src\model\triangle.hpp" />
     <ClInclude Include="src\test\hello.hpp" />
     <ClInclude Include="src\utils\bounding_box.hpp" />
+    <ClInclude Include="src\utils\camera.hpp" />
+    <ClInclude Include="src\utils\framebuffer.hpp" />
     <ClInclude Include="src\utils\frame_rate_indicator.hpp" />
+    <ClInclude Include="src\utils\frustum.hpp" />
+    <ClInclude Include="src\utils\fullscreen_quad.hpp" />
     <ClInclude Include="src\utils\glsl_program.hpp" />
     <ClInclude Include="src\utils\gl_utility.hpp" />
     <ClInclude Include="src\utils\input.hpp" />
+    <ClInclude Include="src\utils\instanced_model.hpp" />
+    <ClInclude Include="src\utils\light.hpp" />
+    <ClInclude Include="src\utils\plane.hpp" />
+    <ClInclude Include="src\utils\skybox.hpp" />
+    <ClInclude Include="src\utils\texture.hpp" />
+    <ClInclude Include="src\utils\texture2d.hpp" />
+    <ClInclude Include="src\utils\texture_cubemap.hpp" />
     <ClInclude Include="src\utils\transform.hpp" />
+    <ClInclude Include="src\utils\uniform_buffer.h" />
     <ClInclude Include="src\utils\vertex.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
