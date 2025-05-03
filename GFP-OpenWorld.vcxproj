@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -71,7 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);E:\Academy\course\Y2S2\Graphic\finalProj\GFP-OpenWorld\include</IncludePath>
+    <IncludePath>E:\Academy\course\Y2S2\Graphic\finalProj\GFP-OpenWorld\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);E:\Academy\course\Y2S2\Graphic\finalProj\GFP-OpenWorld\src</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);E:\Academy\course\Y2S2\Graphic\finalProj\GFP-OpenWorld\lib</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -134,6 +134,29 @@
   <ItemGroup>
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\app\application.cpp" />
+    <ClCompile Include="src\app\triangleApp.cpp" />
+    <ClCompile Include="src\model\model.cpp" />
+    <ClCompile Include="src\model\monkeyHead.cpp" />
+    <ClCompile Include="src\model\triangle.cpp" />
+    <ClCompile Include="src\test\hello.cpp" />
+    <ClCompile Include="src\utils\glsl_program.cpp" />
+    <ClCompile Include="src\utils\transform.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\app\application.hpp" />
+    <ClInclude Include="src\app\triangleApp.hpp" />
+    <ClInclude Include="src\model\model.hpp" />
+    <ClInclude Include="src\model\monkeyHead.hpp" />
+    <ClInclude Include="src\model\triangle.hpp" />
+    <ClInclude Include="src\test\hello.hpp" />
+    <ClInclude Include="src\utils\bounding_box.hpp" />
+    <ClInclude Include="src\utils\frame_rate_indicator.hpp" />
+    <ClInclude Include="src\utils\glsl_program.hpp" />
+    <ClInclude Include="src\utils\gl_utility.hpp" />
+    <ClInclude Include="src\utils\input.hpp" />
+    <ClInclude Include="src\utils\transform.hpp" />
+    <ClInclude Include="src\utils\vertex.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
