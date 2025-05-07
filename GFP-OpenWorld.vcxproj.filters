@@ -30,9 +30,6 @@
     <ClCompile Include="src\model\model.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\model\monkeyHead.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="src\app\application.cpp">
       <Filter>源文件</Filter>
     </ClCompile>

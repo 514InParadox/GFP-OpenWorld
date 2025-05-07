@@ -140,7 +140,6 @@
     <ClCompile Include="src\app\initSceneApp.cpp" />
     <ClCompile Include="src\app\triangleApp.cpp" />
     <ClCompile Include="src\model\model.cpp" />
-    <ClCompile Include="src\model\monkeyHead.cpp" />
     <ClCompile Include="src\model\triangle.cpp" />
     <ClCompile Include="src\test\hello.cpp" />
     <ClCompile Include="src\utils\camera.cpp" />

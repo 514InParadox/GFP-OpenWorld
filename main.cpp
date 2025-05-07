@@ -42,8 +42,8 @@ int main(int argc, char *argv[]) {
     Options options = getOptions(argc, argv);
 
     try {
-        // TriangleApp app(options);
-        InitSceneApp app(options);
+        TriangleApp app(options);
+        // InitSceneApp app(options);
         app.run();
     } catch (std::runtime_error& e) {
         std::cerr << e.what() << std::endl;

@@ -1,7 +1,7 @@
 #include "triangle.hpp"
 
-Triangle::Triangle(const std::vector<Vertex> vertices) : Model(vertices, std::vector<uint32_t>{0, 1, 2})
-    {
+Triangle::Triangle(const std::vector<Vertex> vertices): 
+    Model(vertices, std::vector<uint32_t>{0, 1, 2}) {
     glGenVertexArrays(1, &_vao);
     glGenBuffers(1, &_vbo);
     glGenBuffers(1, &_ebo);

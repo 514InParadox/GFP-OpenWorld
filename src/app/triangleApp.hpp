@@ -5,6 +5,7 @@
 
 #include "model/triangle.hpp"
 #include "utils/glsl_program.hpp"
+#include "utils/texture2d.hpp"
 #include "application.hpp"
 
 class TriangleApp : public Application {
@@ -24,7 +25,9 @@ private:
 
     int twicks = 0;
 
-    std::unique_ptr<GLSLProgram> _shader;
+    std::unique_ptr<GLSLProgram> _shader, _textureShader;
+
+    std::unique_ptr<Texture2D> _texture;
 
     void initShader();
 };

@@ -4,6 +4,9 @@
 const std::string vertexShaderAddr   = "shader/vertex/triangleApp.vert";
 const std::string fragmentShaderAddr = "shader/fragment/triangleApp.frag";
 
+const std::string texture_vertexShaderAddr = "shader/vertex/triangleApp_texture.vert";
+const std::string texture_fragmentShaderAddr = "shader/fragment/triangleApp_texture.frag";
+
 const std::string textureAddr = "resource/texture/woodBox.jpg";
 
 TriangleApp::TriangleApp(const Options &options) : Application(options) {
@@ -47,4 +50,9 @@ void TriangleApp::initShader() {
     _shader->attachVertexShaderFromFile(getAssetFullPath(vertexShaderAddr));
     _shader->attachFragmentShaderFromFile(getAssetFullPath(fragmentShaderAddr));
     _shader->link();
+
+    _textureShader.reset(new GLSLProgram);
+    _textureShader->attachVertexShaderFromFile(getAssetFullPath(texture_vertexShaderAddr));
+    _textureShader->attachFragmentShaderFromFile(getAssetFullPath(texture_fragmentShaderAddr));
+    _textureShader->link();
 }
