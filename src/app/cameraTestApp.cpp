@@ -38,6 +38,13 @@ CameraTestApp::CameraTestApp(const Options &options) : Application(options) {
     // Initialize clipping planes with camera's current values
     _nearPlane = _advCamera->getNearClippingPlane();
     _farPlane = _advCamera->getFarClippingPlane();
+    
+    // Set initial clipping planes to match the values in the header file
+    // This ensures consistency between initial and reset values
+    _advCamera->setNearClippingPlane(1.0f);  // Match the value used in reset
+    _advCamera->setFarClippingPlane(15.0f);  // Match the value used in reset
+    _nearPlane = 1.0f;  // Update our local tracking variables
+    _farPlane = 15.0f;
 
     // Setup models in a row
     setupModels();
@@ -236,7 +243,8 @@ void CameraTestApp::handleInput() {
         _showClippingInfo = true;
         _clippingInfoDisplayTime = 0.0f;
         
-        std::cout << "Reset clipping planes to default values" << std::endl;
+        std::cout << "Reset clipping planes to default values: Near = " << _nearPlane 
+                  << ", Far = " << _farPlane << std::endl;
         _input.keyboard.keyStates[GLFW_KEY_R] = GLFW_RELEASE;
     }
     
