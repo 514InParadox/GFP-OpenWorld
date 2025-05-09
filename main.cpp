@@ -11,10 +11,13 @@
 #include "app/triangleApp.hpp"
 #include "app/initSceneApp.hpp"
 #include "app/cameraTestApp.hpp"
+#include "app/testPhysicsApp.hpp"
+#include "app/testPhysicsTwoApp.hpp"
+#include "app/testPhysicsThreeApp.hpp"
 
 Options getOptions(int argc, char* argv[]) {
     Options options;
-    options.windowTitle = "Camera Test App";
+    options.windowTitle = "Physics Test App";
     options.windowWidth = 1280;
     options.windowHeight = 720;
     options.windowResizable = false;
@@ -45,7 +48,10 @@ int main(int argc, char *argv[]) {
     try {
         // TriangleApp app(options);
         // InitSceneApp app(options);
-        CameraTestApp app(options);
+        // CameraTestApp app(options);
+        // TestPhysicsApp app(options);
+        // TestPhysicsTwoApp app(options);
+        TestPhysicsThreeApp app(options);
         app.run();
     } catch (std::runtime_error& e) {
         std::cerr << e.what() << std::endl;

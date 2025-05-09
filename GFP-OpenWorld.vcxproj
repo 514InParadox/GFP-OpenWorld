@@ -139,6 +139,9 @@
     <ClCompile Include="src\app\application.cpp" />
     <ClCompile Include="src\app\cameraTestApp.cpp" />
     <ClCompile Include="src\app\initSceneApp.cpp" />
+    <ClCompile Include="src\app\testPhysicsApp.cpp" />
+    <ClCompile Include="src\app\testPhysicsThreeApp.cpp" />
+    <ClCompile Include="src\app\testPhysicsTwoApp.cpp" />
     <ClCompile Include="src\app\triangleApp.cpp" />
     <ClCompile Include="src\model\model.cpp" />
     <ClCompile Include="src\model\triangle.cpp" />
@@ -149,6 +152,7 @@
     <ClCompile Include="src\utils\fullscreen_quad.cpp" />
     <ClCompile Include="src\utils\glsl_program.cpp" />
     <ClCompile Include="src\utils\instanced_model.cpp" />
+    <ClCompile Include="src\utils\physics.cpp" />
     <ClCompile Include="src\utils\skybox.cpp" />
     <ClCompile Include="src\utils\texture.cpp" />
     <ClCompile Include="src\utils\texture2d.cpp" />
@@ -157,7 +161,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\app\application.hpp" />
+    <ClInclude Include="src\app\cameraTestApp.hpp" />
     <ClInclude Include="src\app\initSceneApp.hpp" />
+    <ClInclude Include="src\app\testPhysicsApp.hpp" />
+    <ClInclude Include="src\app\testPhysicsTwoApp.hpp" />
     <ClInclude Include="src\app\triangleApp.hpp" />
     <ClInclude Include="src\model\model.hpp" />
     <ClInclude Include="src\model\monkeyHead.hpp" />

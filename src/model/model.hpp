@@ -2,11 +2,15 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "utils/bounding_box.hpp"
 #include "utils/gl_utility.hpp"
 #include "utils/transform.hpp"
 #include "utils/vertex.hpp"
+
+// 前向声明避免循环引用
+class Physics;
 
 class Model {
 public:
@@ -41,6 +45,18 @@ public:
     const Vertex& getVertex(int i) const {
         return _vertices[i];
     }
+    
+    // 添加物理组件
+    void addPhysics();
+    
+    // 获取物理组件
+    Physics* getPhysics() const;
+    
+    // 移除物理组件
+    void removePhysics();
+    
+    // 检查是否有物理组件
+    bool hasPhysics() const;
 
 public:
     Transform transform;
@@ -61,6 +77,9 @@ protected:
     GLuint _boxVao = 0;
     GLuint _boxVbo = 0;
     GLuint _boxEbo = 0;
+
+    // 物理组件
+    std::unique_ptr<Physics> _physics = nullptr;
 
     void computeBoundingBox();
 

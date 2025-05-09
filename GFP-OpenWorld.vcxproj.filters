@@ -75,6 +75,21 @@
     <ClCompile Include="include\glad\glad.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\app\cameraTestApp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\advance_camera.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\testPhysicsApp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\physics.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\testPhysicsTwoApp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\test\hello.hpp">
@@ -153,6 +168,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\uniform_buffer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\cameraTestApp.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\testPhysicsApp.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\testPhysicsTwoApp.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

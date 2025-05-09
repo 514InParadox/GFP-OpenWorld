@@ -5,12 +5,13 @@ in vec3 normal;
 
 out vec4 fragColor;
 
+uniform vec3 objectColor;
+
 void main() {
     vec3 lightPosition = vec3(100.0f, 100.0f, 100.0f);
 
     // ambient color
     float ka = 0.1f;
-    vec3 objectColor = vec3(1.0f, 1.0f, 1.0f);
     vec3 ambient = ka * objectColor;
 
     // diffuse color

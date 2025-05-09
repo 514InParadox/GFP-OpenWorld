@@ -5,7 +5,8 @@
 
 #include <tinyobjloader/tiny_obj_loader.h>
 
-#include "model.hpp"
+#include "model/model.hpp"
+#include "utils/physics.hpp"
 
 Model::Model(const std::string& filepath) {
     // TODOO: 替换 tinyobj 为自己的实现
@@ -265,4 +266,27 @@ void Model::cleanup() {
         glDeleteVertexArrays(1, &_vao);
         _vao = 0;
     }
+}
+
+// 添加物理组件
+void Model::addPhysics() {
+    if (!_physics) {
+        _physics = std::make_unique<Physics>();
+        _physics->setModel(this);
+    }
+}
+
+// 获取物理组件
+Physics* Model::getPhysics() const {
+    return _physics.get();
+}
+
+// 移除物理组件
+void Model::removePhysics() {
+    _physics.reset();
+}
+
+// 检查是否有物理组件
+bool Model::hasPhysics() const {
+    return _physics != nullptr;
 }
