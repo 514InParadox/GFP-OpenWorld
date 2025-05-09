@@ -15,15 +15,24 @@ AdvanceCamera::AdvanceCamera(int windowWidth, int windowHeight) {
         std::cout << "Initial FOV outside valid range, reset to: " << glm::degrees(_fov) << " degrees" << std::endl;
     }
     
+    // Default clipping planes
+    float nearPlane = 0.1f;
+    float farPlane = 10000.0f;
+    
     // Initialize camera with perspective projection
     const float aspect = 1.0f * windowWidth / windowHeight;
-    _camera.reset(new PerspectiveCamera(_fov, aspect, 0.1f, 10000.0f));
+    _camera.reset(new PerspectiveCamera(_fov, aspect, nearPlane, farPlane));
+    
+    // Initialize animation target clipping planes
+    _animTarget.nearPlane = nearPlane;
+    _animTarget.farPlane = farPlane;
     
     // Verify FOV is correctly set in camera
     PerspectiveCamera* perspCamera = dynamic_cast<PerspectiveCamera*>(_camera.get());
     if (perspCamera) {
         perspCamera->fovy = _fov;
         std::cout << "Camera initialized with FOV: " << glm::degrees(_fov) << " degrees" << std::endl;
+        std::cout << "Clipping planes: [" << perspCamera->znear << ", " << perspCamera->zfar << "]" << std::endl;
     }
     
     // Default position
@@ -186,10 +195,43 @@ void AdvanceCamera::zoomToFit(const BoundingBox& targetBBox, float padding) {
     rotMatrix[2] = -direction;
     glm::quat targetRotation = glm::quat_cast(rotMatrix);
     
+    // Get current clipping planes (instead of calculating new ones)
+    float currentNearPlane = getNearClippingPlane();
+    float currentFarPlane = getFarClippingPlane();
+    
+    /* 
+    // The following code for automatic clipping plane calculation is currently disabled
+    // Calculate optimal clipping planes based on bounding box
+    // Calculate new near plane - slightly closer than the closest point of the bounding box
+    float targetNearPlane = targetDistance - (maxDimension * 0.5f);
+    targetNearPlane = std::max(0.01f, targetNearPlane * 0.9f); // Add some margin and ensure minimum value
+    
+    // Calculate new far plane - slightly farther than the farthest point of the bounding box
+    float targetFarPlane = targetDistance + (maxDimension * 0.5f);
+    targetFarPlane = targetFarPlane * 1.1f; // Add some margin
+    
+    // Ensure the far plane is at least 100x the near plane for good depth precision
+    targetFarPlane = std::max(targetFarPlane, targetNearPlane * 100.0f);
+    
+    // Cap the target far plane to a reasonable maximum (avoid excessively large values)
+    targetFarPlane = std::min(targetFarPlane, 10000.0f);
+    
+    std::cout << "Clipping planes - Current: [" << currentNearPlane << ", " << currentFarPlane 
+              << "] Target: [" << targetNearPlane << ", " << targetFarPlane << "]" << std::endl;
+    */
+    
+    std::cout << "Using current clipping planes: [" << currentNearPlane << ", " << currentFarPlane << "]" << std::endl;
+    
     // Setup animation target
     _animTarget.position = targetPosition;
     _animTarget.rotation = targetRotation;
     _animTarget.fov = targetFOV;
+    _animTarget.nearPlane = currentNearPlane;  // Use current near plane instead of calculating new one
+    _animTarget.farPlane = currentFarPlane;    // Use current far plane instead of calculating new one
+    /* To enable automatic clipping plane adjustment, replace the two lines above with these:
+    _animTarget.nearPlane = targetNearPlane;
+    _animTarget.farPlane = targetFarPlane;
+    */
     _animTarget.active = true;
     _animTarget.elapsed = 0.0f;
     _animTarget.duration = 1.0f / _animationSpeed;
@@ -224,12 +266,15 @@ void AdvanceCamera::updateAnimation(float deltaTime) {
         _camera->transform.position = _animTarget.position;
         _camera->transform.rotation = _animTarget.rotation;
         
-        // Set exact FOV
+        // Set exact FOV and clipping planes
         PerspectiveCamera* perspCamera = dynamic_cast<PerspectiveCamera*>(_camera.get());
         if (perspCamera) {
             _fov = _animTarget.fov;
             perspCamera->fovy = _fov;
-            std::cout << "Final FOV set to: " << _fov << " radians" << std::endl;
+            perspCamera->znear = _animTarget.nearPlane;
+            perspCamera->zfar = _animTarget.farPlane;
+            std::cout << "Final values set - FOV: " << _fov << " radians, "
+                      << "Clipping planes: [" << perspCamera->znear << ", " << perspCamera->zfar << "]" << std::endl;
         }
         
         // If we're restoring to previous mode, keep the current position/rotation 
@@ -281,7 +326,7 @@ void AdvanceCamera::updateAnimation(float deltaTime) {
     // Interpolate rotation (using slerp for quaternions)
     _camera->transform.rotation = glm::slerp(_camera->transform.rotation, _animTarget.rotation, t);
     
-    // Interpolate FOV if using perspective camera
+    // Interpolate FOV and clipping planes if using perspective camera
     PerspectiveCamera* perspCamera = dynamic_cast<PerspectiveCamera*>(_camera.get());
     if (perspCamera) {
         // Direct interpolation between current and target FOV
@@ -290,6 +335,10 @@ void AdvanceCamera::updateAnimation(float deltaTime) {
         // Ensure FOV is valid
         if (_fov < _minFOV) _fov = _minFOV;
         if (_fov > _maxFOV) _fov = _maxFOV;
+        
+        // Interpolate near and far clipping planes
+        perspCamera->znear = interpolate(perspCamera->znear, _animTarget.nearPlane, t);
+        perspCamera->zfar = interpolate(perspCamera->zfar, _animTarget.farPlane, t);
         
         // Apply to camera
         perspCamera->fovy = _fov;
@@ -633,5 +682,73 @@ void AdvanceCamera::updateProjection(float aspectRatio) {
     if (perspCamera) {
         perspCamera->fovy = _fov;
         perspCamera->aspect = aspectRatio;
+    }
+}
+
+// Get near clipping plane distance
+float AdvanceCamera::getNearClippingPlane() const {
+    PerspectiveCamera* perspCamera = dynamic_cast<PerspectiveCamera*>(_camera.get());
+    if (perspCamera) {
+        return perspCamera->znear;
+    }
+    
+    // Default value if cast fails
+    return 0.1f;
+}
+
+// Set near clipping plane distance
+void AdvanceCamera::setNearClippingPlane(float nearPlane) {
+    // Enforce minimum value for near plane to avoid precision issues
+    float safeNearPlane = std::max(0.01f, nearPlane);
+    
+    // Get far plane to check validity
+    float farPlane = getFarClippingPlane();
+    
+    // Ensure near plane is less than far plane
+    if (safeNearPlane >= farPlane) {
+        std::cout << "Warning: Near plane (" << safeNearPlane 
+                  << ") must be less than far plane (" << farPlane 
+                  << "). Setting to " << farPlane * 0.01f << std::endl;
+        safeNearPlane = farPlane * 0.01f;
+    }
+    
+    PerspectiveCamera* perspCamera = dynamic_cast<PerspectiveCamera*>(_camera.get());
+    if (perspCamera) {
+        perspCamera->znear = safeNearPlane;
+        std::cout << "Near clipping plane set to: " << safeNearPlane << std::endl;
+    }
+}
+
+// Get far clipping plane distance
+float AdvanceCamera::getFarClippingPlane() const {
+    PerspectiveCamera* perspCamera = dynamic_cast<PerspectiveCamera*>(_camera.get());
+    if (perspCamera) {
+        return perspCamera->zfar;
+    }
+    
+    // Default value if cast fails
+    return 10000.0f;
+}
+
+// Set far clipping plane distance
+void AdvanceCamera::setFarClippingPlane(float farPlane) {
+    // Enforce minimum value for far plane
+    float safeFarPlane = std::max(1.0f, farPlane);
+    
+    // Get near plane to check validity
+    float nearPlane = getNearClippingPlane();
+    
+    // Ensure far plane is greater than near plane
+    if (safeFarPlane <= nearPlane) {
+        std::cout << "Warning: Far plane (" << safeFarPlane 
+                  << ") must be greater than near plane (" << nearPlane 
+                  << "). Setting to " << nearPlane * 100.0f << std::endl;
+        safeFarPlane = nearPlane * 100.0f;
+    }
+    
+    PerspectiveCamera* perspCamera = dynamic_cast<PerspectiveCamera*>(_camera.get());
+    if (perspCamera) {
+        perspCamera->zfar = safeFarPlane;
+        std::cout << "Far clipping plane set to: " << safeFarPlane << std::endl;
     }
 } 

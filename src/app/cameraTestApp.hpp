@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <chrono>
+#include <vector>
 
 #include "application.hpp"
 #include "model/model.hpp"
@@ -24,8 +25,8 @@ private:
     // Advanced camera for testing
     std::unique_ptr<AdvanceCamera> _advCamera;
 
-    // Central model for visualization
-    std::unique_ptr<Model> _model;
+    // Multiple models for visualization
+    std::vector<std::unique_ptr<Model>> _models;
 
     // Shader program
     std::unique_ptr<GLSLProgram> _shader;
@@ -37,9 +38,22 @@ private:
     std::chrono::time_point<std::chrono::high_resolution_clock> _lastFrameTime;
     float _deltaTime = 0.0f;
 
+    // Clipping plane adjustment parameters
+    float _nearPlane = 1.0f;
+    float _farPlane = 15.0f;
+    float _planeAdjustSpeed = 0.5f;
+    bool _showClippingInfo = true;
+    float _clippingInfoDisplayTime = 0.0f;
+    const float _clippingInfoTimeout = 3.0f;
+
     void initShader();
     
     void updateFrameTime();
+
+    void displayClippingPlaneInfo();
+
+    // Create multiple models in a row
+    void setupModels();
 };
 
 #endif 

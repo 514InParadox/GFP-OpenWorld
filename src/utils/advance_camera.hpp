@@ -77,6 +77,18 @@ public:
     // Check if camera is currently animating
     bool isAnimating() const;
 
+    // Get near clipping plane distance
+    float getNearClippingPlane() const;
+    
+    // Set near clipping plane distance
+    void setNearClippingPlane(float nearPlane);
+    
+    // Get far clipping plane distance
+    float getFarClippingPlane() const;
+    
+    // Set far clipping plane distance
+    void setFarClippingPlane(float farPlane);
+
 private:
     // The camera instance
     std::unique_ptr<Camera> _camera;
@@ -126,6 +138,8 @@ private:
         glm::vec3 position;
         glm::quat rotation;
         float fov;
+        float nearPlane;
+        float farPlane;
         bool active = false;
         float duration = 1.0f;
         float elapsed = 0.0f;
