@@ -71,8 +71,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>E:\Academy\course\Y2S2\Graphic\finalProj\GFP-OpenWorld\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);E:\Academy\course\Y2S2\Graphic\finalProj\GFP-OpenWorld\src</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);E:\Academy\course\Y2S2\Graphic\finalProj\GFP-OpenWorld\lib</LibraryPath>
+    <IncludePath>$(ProjectDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)src</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(ProjectDir)lib</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -137,11 +137,13 @@
     <ClCompile Include="include\tinyobjloader\tiny_obj_loader.cc" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\app\application.cpp" />
+    <ClCompile Include="src\app\cameraTestApp.cpp" />
     <ClCompile Include="src\app\initSceneApp.cpp" />
     <ClCompile Include="src\app\triangleApp.cpp" />
     <ClCompile Include="src\model\model.cpp" />
     <ClCompile Include="src\model\triangle.cpp" />
     <ClCompile Include="src\test\hello.cpp" />
+    <ClCompile Include="src\utils\advance_camera.cpp" />
     <ClCompile Include="src\utils\camera.cpp" />
     <ClCompile Include="src\utils\framebuffer.cpp" />
     <ClCompile Include="src\utils\fullscreen_quad.cpp" />

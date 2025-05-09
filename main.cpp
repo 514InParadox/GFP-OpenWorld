@@ -10,10 +10,11 @@
 #include "app/application.hpp"
 #include "app/triangleApp.hpp"
 #include "app/initSceneApp.hpp"
+#include "app/cameraTestApp.hpp"
 
 Options getOptions(int argc, char* argv[]) {
     Options options;
-    options.windowTitle = "Transformation";
+    options.windowTitle = "Camera Test App";
     options.windowWidth = 1280;
     options.windowHeight = 720;
     options.windowResizable = false;
@@ -42,8 +43,9 @@ int main(int argc, char *argv[]) {
     Options options = getOptions(argc, argv);
 
     try {
-        TriangleApp app(options);
+        // TriangleApp app(options);
         // InitSceneApp app(options);
+        CameraTestApp app(options);
         app.run();
     } catch (std::runtime_error& e) {
         std::cerr << e.what() << std::endl;
