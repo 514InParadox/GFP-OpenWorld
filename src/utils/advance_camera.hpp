@@ -56,6 +56,9 @@ public:
     // Get current field of view (in radians)
     float getFOV() const;
     
+    // Set field of view (in radians)
+    void setFOV(float fov);
+    
     // Get mode name as string
     std::string getModeString() const;
     
@@ -78,16 +81,19 @@ public:
     bool isAnimating() const;
 
     // Get near clipping plane distance
-    float getNearClippingPlane() const;
+    float getNearPlane() const;
     
     // Set near clipping plane distance
-    void setNearClippingPlane(float nearPlane);
+    void setNearPlane(float nearPlane);
     
     // Get far clipping plane distance
-    float getFarClippingPlane() const;
+    float getFarPlane() const;
     
     // Set far clipping plane distance
-    void setFarClippingPlane(float farPlane);
+    void setFarPlane(float farPlane);
+    
+    // Update camera projection after FOV change
+    void updateProjection(float aspectRatio);
 
 private:
     // The camera instance
@@ -121,6 +127,10 @@ private:
     // Current field of view (in radians)
     float _fov = glm::radians(45.0f);
     
+    // Near and far clipping planes
+    float _nearPlane = 0.1f;
+    float _farPlane = 1000.0f;
+    
     // Orbit target point
     glm::vec3 _orbitTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     
@@ -138,8 +148,6 @@ private:
         glm::vec3 position;
         glm::quat rotation;
         float fov;
-        float nearPlane;
-        float farPlane;
         bool active = false;
         float duration = 1.0f;
         float elapsed = 0.0f;
@@ -167,9 +175,6 @@ private:
     // Interpolate between two values
     template<typename T>
     T interpolate(const T& start, const T& end, float t) const;
-    
-    // Update camera projection after FOV change
-    void updateProjection(float aspectRatio);
 };
 
 #endif // _UTILS_ADVANCE_CAMERA_HPP 

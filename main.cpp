@@ -48,10 +48,10 @@ int main(int argc, char *argv[]) {
     try {
         // TriangleApp app(options);
         // InitSceneApp app(options);
-        // CameraTestApp app(options);
+         CameraTestApp app(options);
         // TestPhysicsApp app(options);
         // TestPhysicsTwoApp app(options);
-        TestPhysicsThreeApp app(options);
+        //TestPhysicsThreeApp app(options);
         app.run();
     } catch (std::runtime_error& e) {
         std::cerr << e.what() << std::endl;

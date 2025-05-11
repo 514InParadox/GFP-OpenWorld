@@ -38,10 +38,14 @@ private:
     std::chrono::time_point<std::chrono::high_resolution_clock> _lastFrameTime;
     float _deltaTime = 0.0f;
 
-    // Clipping plane adjustment parameters
+    // Clipping plane variables
     float _nearPlane = 1.0f;
     float _farPlane = 15.0f;
     float _planeAdjustSpeed = 0.5f;
+    
+    // FOV adjustment speed
+    float _fovAdjustSpeed = 5.0f;  // Degrees per second
+    
     bool _showClippingInfo = true;
     float _clippingInfoDisplayTime = 0.0f;
     const float _clippingInfoTimeout = 3.0f;

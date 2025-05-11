@@ -36,13 +36,13 @@ CameraTestApp::CameraTestApp(const Options &options) : Application(options) {
     _advCamera.reset(new AdvanceCamera(_windowWidth, _windowHeight));
 
     // Initialize clipping planes with camera's current values
-    _nearPlane = _advCamera->getNearClippingPlane();
-    _farPlane = _advCamera->getFarClippingPlane();
+    _nearPlane = _advCamera->getNearPlane();
+    _farPlane = _advCamera->getFarPlane();
     
     // Set initial clipping planes to match the values in the header file
     // This ensures consistency between initial and reset values
-    _advCamera->setNearClippingPlane(1.0f);  // Match the value used in reset
-    _advCamera->setFarClippingPlane(15.0f);  // Match the value used in reset
+    _advCamera->setNearPlane(1.0f);  // Match the value used in reset
+    _advCamera->setFarPlane(15.0f);  // Match the value used in reset
     _nearPlane = 1.0f;  // Update our local tracking variables
     _farPlane = 15.0f;
 
@@ -204,7 +204,7 @@ void CameraTestApp::handleInput() {
     if (_input.keyboard.keyStates[GLFW_KEY_Z] != GLFW_RELEASE) {
         // Decrease near plane (move it closer to camera)
         _nearPlane = std::max(0.01f, _nearPlane - _planeAdjustSpeed * _deltaTime);
-        _advCamera->setNearClippingPlane(_nearPlane);
+        _advCamera->setNearPlane(_nearPlane);
         _showClippingInfo = true;
         _clippingInfoDisplayTime = 0.0f;
     }
@@ -212,7 +212,7 @@ void CameraTestApp::handleInput() {
     if (_input.keyboard.keyStates[GLFW_KEY_X] != GLFW_RELEASE) {
         // Increase near plane (move it farther from camera)
         _nearPlane += _planeAdjustSpeed * _deltaTime;
-        _advCamera->setNearClippingPlane(_nearPlane);
+        _advCamera->setNearPlane(_nearPlane);
         _showClippingInfo = true;
         _clippingInfoDisplayTime = 0.0f;
     }
@@ -221,7 +221,7 @@ void CameraTestApp::handleInput() {
     if (_input.keyboard.keyStates[GLFW_KEY_C] != GLFW_RELEASE) {
         // Decrease far plane (move it closer to camera)
         _farPlane = std::max(_nearPlane * 1.1f, _farPlane - _planeAdjustSpeed * 10.0f * _deltaTime);
-        _advCamera->setFarClippingPlane(_farPlane);
+        _advCamera->setFarPlane(_farPlane);
         _showClippingInfo = true;
         _clippingInfoDisplayTime = 0.0f;
     }
@@ -229,7 +229,26 @@ void CameraTestApp::handleInput() {
     if (_input.keyboard.keyStates[GLFW_KEY_V] != GLFW_RELEASE) {
         // Increase far plane (move it farther from camera)
         _farPlane += _planeAdjustSpeed * 10.0f * _deltaTime;
-        _advCamera->setFarClippingPlane(_farPlane);
+        _advCamera->setFarPlane(_farPlane);
+        _showClippingInfo = true;
+        _clippingInfoDisplayTime = 0.0f;
+    }
+
+    // N/M: Adjust field of view (FOV)
+    if (_input.keyboard.keyStates[GLFW_KEY_N] != GLFW_RELEASE) {
+        // Decrease FOV (zoom in)
+        float currentFOV = _advCamera->getFOV();
+        float newFOV = currentFOV - glm::radians(_fovAdjustSpeed * _deltaTime);
+        _advCamera->setFOV(newFOV);
+        _showClippingInfo = true;
+        _clippingInfoDisplayTime = 0.0f;
+    }
+    
+    if (_input.keyboard.keyStates[GLFW_KEY_M] != GLFW_RELEASE) {
+        // Increase FOV (zoom out)
+        float currentFOV = _advCamera->getFOV();
+        float newFOV = currentFOV + glm::radians(_fovAdjustSpeed * _deltaTime);
+        _advCamera->setFOV(newFOV);
         _showClippingInfo = true;
         _clippingInfoDisplayTime = 0.0f;
     }
@@ -238,13 +257,18 @@ void CameraTestApp::handleInput() {
     if (_input.keyboard.keyStates[GLFW_KEY_R] == GLFW_PRESS) {
         _nearPlane = 1.0f;
         _farPlane = 15.0f;
-        _advCamera->setNearClippingPlane(_nearPlane);
-        _advCamera->setFarClippingPlane(_farPlane);
+        _advCamera->setNearPlane(_nearPlane);
+        _advCamera->setFarPlane(_farPlane);
+        
+        // Reset FOV to default (45 degrees)
+        _advCamera->setFOV(glm::radians(45.0f));
+        
         _showClippingInfo = true;
         _clippingInfoDisplayTime = 0.0f;
         
-        std::cout << "Reset clipping planes to default values: Near = " << _nearPlane 
-                  << ", Far = " << _farPlane << std::endl;
+        std::cout << "Reset camera parameters to default values: Near = " << _nearPlane 
+                  << ", Far = " << _farPlane 
+                  << ", FOV = 45" << std::endl;
         _input.keyboard.keyStates[GLFW_KEY_R] = GLFW_RELEASE;
     }
     
@@ -264,7 +288,7 @@ void CameraTestApp::handleInput() {
     if (_advCamera->isAnimating()) {
         modeStr += " (Animating)";
     }
-    glfwSetWindowTitle(_window, (modeStr + " - Use Z/X to adjust near plane, C/V for far plane, R to reset").c_str());
+    glfwSetWindowTitle(_window, (modeStr + " - Use Z/X to adjust near plane, C/V for far plane, N/M for FOV, R to reset").c_str());
 
     // Update input state
     _input.forwardState();
@@ -320,7 +344,8 @@ void CameraTestApp::displayClippingPlaneInfo() {
     // Format the message with proper precision
     std::stringstream ss;
     ss << "Clipping Planes: Near = " << std::fixed << std::setprecision(2) << _nearPlane 
-       << ", Far = " << std::fixed << std::setprecision(2) << _farPlane;
+       << ", Far = " << std::fixed << std::setprecision(2) << _farPlane
+       << " | FOV = " << std::fixed << std::setprecision(1) << glm::degrees(_advCamera->getFOV());
     
     // Print to console - in a real app, this would be rendered as text on screen
     static std::string lastMessage = "";

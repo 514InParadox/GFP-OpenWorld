@@ -113,12 +113,12 @@ if (camera.isAnimating()) {
 
 ```cpp
 // 获取当前值
-float nearPlane = camera.getNearClippingPlane();
-float farPlane = camera.getFarClippingPlane();
+float nearPlane = camera.getNearPlane();
+float farPlane = camera.getFarPlane();
 
 // 设置新值
-camera.setNearClippingPlane(0.1f);    // 必须 > 0
-camera.setFarClippingPlane(1000.0f);  // 必须 > nearPlane
+camera.setNearPlane(0.1f);    // 必须 > 0
+camera.setFarPlane(1000.0f);  // 必须 > nearPlane
 ```
 
 裁剪平面决定了可见深度范围：
@@ -168,7 +168,10 @@ if (camera.isAnimating()) {
 ```cpp
 // 获取/设置视场角（单位为弧度）
 float fov = camera.getFOV();
-// 视场角在缩放操作期间由内部管理
+camera.setFOV(glm::radians(60.0f)); // 设置视场角为60度
+
+// 视场角会自动限制在 _minFOV 和 _maxFOV 范围内
+// 默认范围为 5° 到 120°
 
 // 设置移动速度
 camera.setMoveSpeed(0.2f);     // 移动速度（默认：0.1）
@@ -259,16 +262,17 @@ while (!glfwWindowShouldClose(window)) {
 - `void setZoomSpeed(float speed)`
 - `void setAnimationSpeed(float speed)`
 - `float getFOV() const`
+- `void setFOV(float fov)`
 - `void setOrbitTarget(const glm::vec3& target)`
 - `glm::vec3 getOrbitTarget() const`
 - `void updateOrbitPosition()`
 - `void zoomToFit(const BoundingBox& targetBBox, float padding = 1.2f)`
 - `void updateAnimation(float deltaTime)`
 - `bool isAnimating() const`
-- `float getNearClippingPlane() const`
-- `void setNearClippingPlane(float nearPlane)`
-- `float getFarClippingPlane() const` 
-- `void setFarClippingPlane(float farPlane)`
+- `float getNearPlane() const`
+- `void setNearPlane(float nearPlane)`
+- `float getFarPlane() const` 
+- `void setFarPlane(float farPlane)`
 
 # CameraTestApp 测试应用
 
@@ -324,7 +328,10 @@ app.run();
 - **C/V键**：调整远裁剪平面
   - **C**：减小远裁剪平面距离（向相机方向移动）
   - **V**：增加远裁剪平面距离（远离相机方向移动）
-- **R键**：重置裁剪平面到默认值（近平面=1.0，远平面=15.0）
+- **N/M键**：调整视场角（FOV）
+  - **N**：减小视场角（放大效果）
+  - **M**：增加视场角（缩小效果）
+- **R键**：重置裁剪平面和FOV到默认值（近平面=1.0，远平面=15.0，FOV=45°）
 
 ## 测试场景
 
