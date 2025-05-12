@@ -14,6 +14,7 @@
 #include "app/testPhysicsApp.hpp"
 #include "app/testPhysicsTwoApp.hpp"
 #include "app/testPhysicsThreeApp.hpp"
+#include "utils/collision_system.hpp"
 
 Options getOptions(int argc, char* argv[]) {
     Options options;

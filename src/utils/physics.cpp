@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iostream>
 #include "model/model.hpp"
+#include <glm/gtx/quaternion.hpp>   // 新增
 
 Physics::Physics() : 
     _mass(1.0f),
@@ -18,6 +19,9 @@ Physics::Physics() :
     _torque(0.0f),
     _model(nullptr)
 {
+    _invInertiaLocal = glm::mat3(1.0f) * (5.0f / (2.0f * _mass * 0.5f * 0.5f)); // 均匀球逆惯性
+    _invInertiaWorld = _invInertiaLocal;   // 初始朝向与对象空间一致
+
 }
 
 void Physics::update(float deltaTime) {
@@ -25,6 +29,10 @@ void Physics::update(float deltaTime) {
     if (_isStatic || _model == nullptr) {
         return;
     }
+    // 每帧把局部逆惯性张量旋到世界空间：R * I_body^{-1} * R^T
+    glm::mat3 R = glm::mat3_cast(_model->transform.rotation);
+    _invInertiaWorld = R * _invInertiaLocal * glm::transpose(R);
+
     
     // Apply gravity
     if (_gravityEnabled) {
@@ -48,18 +56,37 @@ void Physics::update(float deltaTime) {
     _model->transform.position = newPosition;
     
     // Update rotation (simplified version, only considers rotation around local coordinate system)
-    if (glm::length(_angularVelocity) > 0.0001f) {
-        // Convert angular velocity to rotation quaternion
-        glm::quat rotationDelta = glm::quat(0.0f, _angularVelocity * deltaTime);
-        rotationDelta = glm::normalize(rotationDelta);
-        
-        // Apply rotation
-        _model->transform.rotation = glm::normalize(_model->transform.rotation * rotationDelta);
+    // 更新，正确写法
+    if (glm::length(_angularVelocity) > 1e-6f)
+    {
+        float angle = glm::length(_angularVelocity) * deltaTime;
+        glm::vec3 axis = _angularVelocity / glm::length(_angularVelocity);
+        glm::quat dq = glm::angleAxis(angle, axis);
+        _model->transform.rotation = glm::normalize(dq * _model->transform.rotation);
     }
     
     // Reset forces and torques for next frame
     _force = glm::vec3(0.0f);
     _torque = glm::vec3(0.0f);
+}
+
+void Physics::integratePosition(float dt)
+{
+    if (_isStatic || _model == nullptr) return;
+    _model->transform.position += _velocity * dt;
+}
+
+void Physics::applyImpulseAtPoint(const glm::vec3& impulse,
+                                  const glm::vec3& worldPoint)
+{
+    if (_isStatic) return;
+    // 线速度
+    _velocity += impulse * _inverseMass;
+
+    // 角速度：Δω = I^{-1} · (r × J)
+    glm::vec3 r = worldPoint - _model->transform.position;   // 向量 r = P - C
+    glm::vec3 dL = glm::cross(r, impulse);                   // 角动量增量
+    _angularVelocity += _invInertiaWorld * dL;
 }
 
 void Physics::bounce(const glm::vec3& normal, float surfaceFriction, float minVelocityThreshold) {
@@ -232,4 +259,40 @@ void Physics::setAngularVelocity(const glm::vec3& angularVelocity) {
     if (!_isStatic) {
         _angularVelocity = angularVelocity;
     }
-} 
+}
+
+Physics::Physics(Model* owner): _owner(owner)
+{
+    /* 默认均匀球体（半径 0.5）逆惯性 */
+    _invInertiaLocal = glm::inverse(sphereInertia(_mass, 0.5f));
+    updateInertiaTensor();
+}
+
+/* ---------- integrate(float dt) ---------- */
+void Physics::integrate(float dt)
+{
+    if (_isStatic || !_owner) return;
+
+    /* 更新世界逆惯性(随旋转) */
+    updateInertiaTensor();
+
+    /* 线速度 -> 位置 */
+    _owner->transform.position += _linearV * dt;
+
+    /* 角速度 -> 旋转四元数 */
+    float wLen = glm::length(_angularV);
+    if (wLen > 1e-6f) {
+        float  angle = wLen * dt;
+        glm::vec3 axis  = _angularV / wLen;
+        _owner->transform.rotation =
+            glm::normalize(glm::angleAxis(angle, axis) *
+                           _owner->transform.rotation);
+    }
+}
+
+void Physics::updateInertiaTensor()
+{
+    if (_isStatic) { _invInertiaWorld = glm::mat3(0); return; }
+    glm::mat3 R = glm::mat3_cast(_owner->transform.rotation);
+    _invInertiaWorld = R * _invInertiaLocal * glm::transpose(R);
+}

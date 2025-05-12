@@ -3,6 +3,8 @@
 
 #include <glm/glm.hpp>
 #include <functional>
+#include <glm/gtx/quaternion.hpp>
+#include "physics/inertia.hpp"
 
 // Forward declaration to avoid circular dependency
 class Model;
@@ -90,6 +92,18 @@ public:
     // surfaceFriction: Surface friction coefficient (0-1)
     // minVelocityThreshold: Minimum velocity threshold, velocity will be set to 0 if below this value
     void bounce(const glm::vec3& normal, float surfaceFriction = 0.3f, float minVelocityThreshold = 0.1f);
+
+    void integratePosition(float dt);
+    float invMass() const{return _inverseMass;}
+
+    void applyImpulseAtPoint(const glm::vec3& impulse, const glm::vec3& worldPoint);
+
+    explicit Physics(Model* owner);
+    const glm::mat3& invInertiaWorld() const{return _invInertiaWorld;}
+    Model* owner() const {return _owner;}
+    void  integrate(float dt);
+    void  updateInertiaTensor();
+    const glm::vec3& getAngVel ()  const { return _angularV; }
     
 private:
     // Physics properties
@@ -100,9 +114,15 @@ private:
     glm::vec3 _gravity = glm::vec3(0, -9.8f, 0); // Gravity acceleration (m/s^2)
     float _restitution = 0.7f;                 // Restitution coefficient (0.0-1.0)
     float _friction = 0.3f;                    // Friction coefficient (0.0-1.0)
+    Model* _owner {nullptr};
+
+    glm::vec3  _linearV {0};
+    glm::vec3  _angularV{0};
     
     // Motion properties
     glm::vec3 _velocity = glm::vec3(0.0f);        // Linear velocity
+    glm::mat3 _invInertiaLocal {1.0f};
+    glm::mat3 _invInertiaWorld {1.0f};
     glm::vec3 _angularVelocity = glm::vec3(0.0f); // Angular velocity
     glm::vec3 _force = glm::vec3(0.0f);           // Current net force
     glm::vec3 _torque = glm::vec3(0.0f);          // Current torque

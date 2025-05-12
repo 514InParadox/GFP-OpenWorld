@@ -1,4 +1,5 @@
 #include "application.hpp"
+#include "utils/collision_system.hpp" // 新增
 
 Application::Application(const Options& options)
     : _assetRootDir(options.assetRootDir), _windowTitle(options.windowTitle),
@@ -87,6 +88,10 @@ void Application::run() {
     while (!glfwWindowShouldClose(_window)) {
         updateTime();
         handleInput();
+
+        // 新增：在渲染前做离散碰撞检测
+        CollisionSystem::instance().update(_deltaTime);
+
         renderFrame();
 
         glfwSwapBuffers(_window);

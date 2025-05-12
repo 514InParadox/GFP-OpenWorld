@@ -8,7 +8,7 @@
 #include "utils/gl_utility.hpp"
 #include "utils/transform.hpp"
 #include "utils/vertex.hpp"
-
+#include "utils/physics.hpp"
 // 前向声明避免循环引用
 class Physics;
 
