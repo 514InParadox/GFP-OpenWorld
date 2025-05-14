@@ -90,6 +90,24 @@
     <ClCompile Include="src\app\testPhysicsTwoApp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\app\testPhysicsThreeApp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="include\glm\detail\glm.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\collision_system.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\bvh.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\lightingTestApp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\lightingTestApp2.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\test\hello.hpp">
@@ -179,5 +197,29 @@
     <ClInclude Include="src\app\testPhysicsTwoApp.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="src\utils\physics.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\collision_system.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\advance_camera.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\bvh.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\bounding_sphere.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\lightingTestApp.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\lightingTestApp2.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="lib\glfw3.lib" />
   </ItemGroup>
 </Project>
