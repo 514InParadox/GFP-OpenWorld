@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iomanip>
 #include <glm/gtc/matrix_transform.hpp>
+#include <utils/collision_system.hpp>
 
 // Shader file paths
 const std::string vertexShaderAddr   = "shader/vertex/initSceneApp.vert";
@@ -60,6 +61,16 @@ void TestPhysicsApp::setupModels() {
     // Add physics component to cube
     _fallingObject->addPhysics();
     Physics* objectPhysics = _fallingObject->getPhysics();
+
+    // 新增，告诉碰撞模型，这个物体要检测碰撞
+    CollisionSystem::instance().registerObject(
+        _fallingObject.get(), objectPhysics, ColliderShape::AABB);
+    // 新增：地板也要参与碰撞（静态刚体），做法相同，不过记得标成静态
+    _floorModel->addPhysics();
+    Physics* floorPhy = _floorModel->getPhysics();
+    floorPhy->setStatic(true);
+    CollisionSystem::instance().registerObject(
+        _floorModel.get(), floorPhy, ColliderShape::AABB);
     
     // Set physics properties
     objectPhysics->setMass(1.0f);          // 1kg mass

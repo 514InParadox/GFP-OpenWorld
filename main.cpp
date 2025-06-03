@@ -17,6 +17,9 @@
 #include "app/testPhysicsTwoApp.hpp"
 #include "app/testPhysicsThreeApp.hpp"
 #include "app/modelImportApp.hpp"
+#include "utils/collision_system.hpp"
+#include "app/lightingTestApp.hpp"
+#include "app/lightingTestApp2.hpp"
 
 Options getOptions(int argc, char* argv[]) {
     Options options;
@@ -51,9 +54,13 @@ int main(int argc, char *argv[]) {
         // TriangleApp app(options);
         // InitSceneApp app(options);
         //  CameraTestApp app(options);
+         //InitSceneApp app(options);
+         //CameraTestApp app(options);
         // TestPhysicsApp app(options);
         // TestPhysicsTwoApp app(options);
         //TestPhysicsThreeApp app(options);
+        //lightingTestApp app(options);
+        lightingTestApp2 app(options);
         app.run();
     } catch (std::runtime_error& e) {
         std::cerr << e.what() << std::endl;

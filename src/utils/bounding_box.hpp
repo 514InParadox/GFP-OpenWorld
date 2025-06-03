@@ -56,6 +56,9 @@ struct BoundingBox {
         min = newMin;
         max = newMax;
     }
+
+    inline glm::vec3 center() const { return 0.5f * (min + max); }
+
 };
 
 #endif

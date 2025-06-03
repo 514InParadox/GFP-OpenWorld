@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iomanip>
 #include <glm/gtc/matrix_transform.hpp>
+#include "utils/collision_system.hpp"
 
 // Shader file paths
 const std::string vertexShaderAddr   = "shader/vertex/initSceneApp.vert";
@@ -62,6 +63,10 @@ void TestPhysicsThreeApp::setupModels() {
     // Add physics component
     _rotatingObject->addPhysics();
     Physics* objectPhysics = _rotatingObject->getPhysics();
+
+    // 新增，告诉碰撞模型，这个物体要检测碰撞
+    CollisionSystem::instance().registerObject(
+        _rotatingObject.get(), objectPhysics, ColliderShape::Sphere);
     
     // Set physics properties
     objectPhysics->setMass(1.0f);

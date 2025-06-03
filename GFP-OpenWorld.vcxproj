@@ -80,6 +80,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -94,6 +95,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -108,11 +110,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>D:\GFP-OpenWorld\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\GFP-OpenWorld\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -123,6 +128,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,6 +139,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="include\glad\glad.c" />
+    <ClCompile Include="include\glm\detail\glm.cpp" />
     <ClCompile Include="include\stb\stb_image.cpp" />
     <ClCompile Include="include\tinyobjloader\tiny_obj_loader.cc" />
     <ClCompile Include="main.cpp" />
@@ -141,6 +148,8 @@
     <ClCompile Include="src\app\cameraTestApp.cpp" />
     <ClCompile Include="src\app\finalSceneApp.cpp" />
     <ClCompile Include="src\app\initSceneApp.cpp" />
+    <ClCompile Include="src\app\lightingTestApp.cpp" />
+    <ClCompile Include="src\app\lightingTestApp2.cpp" />
     <ClCompile Include="src\app\modelImportApp.cpp" />
     <ClCompile Include="src\app\testPhysicsApp.cpp" />
     <ClCompile Include="src\app\testPhysicsThreeApp.cpp" />
@@ -150,7 +159,9 @@
     <ClCompile Include="src\model\triangle.cpp" />
     <ClCompile Include="src\test\hello.cpp" />
     <ClCompile Include="src\utils\advance_camera.cpp" />
+    <ClCompile Include="src\utils\bvh.cpp" />
     <ClCompile Include="src\utils\camera.cpp" />
+    <ClCompile Include="src\utils\collision_system.cpp" />
     <ClCompile Include="src\utils\framebuffer.cpp" />
     <ClCompile Include="src\utils\fullscreen_quad.cpp" />
     <ClCompile Include="src\utils\glsl_program.cpp" />
@@ -168,6 +179,8 @@
     <ClInclude Include="src\app\cameraTestApp.hpp" />
     <ClInclude Include="src\app\finalSceneApp.hpp" />
     <ClInclude Include="src\app\initSceneApp.hpp" />
+    <ClInclude Include="src\app\lightingTestApp.hpp" />
+    <ClInclude Include="src\app\lightingTestApp2.hpp" />
     <ClInclude Include="src\app\modelImportApp.hpp" />
     <ClInclude Include="src\app\testPhysicsApp.hpp" />
     <ClInclude Include="src\app\testPhysicsThreeApp.hpp" />
@@ -179,7 +192,10 @@
     <ClInclude Include="src\test\hello.hpp" />
     <ClInclude Include="src\utils\advance_camera.hpp" />
     <ClInclude Include="src\utils\bounding_box.hpp" />
+    <ClInclude Include="src\utils\bounding_sphere.hpp" />
+    <ClInclude Include="src\utils\bvh.hpp" />
     <ClInclude Include="src\utils\camera.hpp" />
+    <ClInclude Include="src\utils\collision_system.hpp" />
     <ClInclude Include="src\utils\framebuffer.hpp" />
     <ClInclude Include="src\utils\frame_rate_indicator.hpp" />
     <ClInclude Include="src\utils\frustum.hpp" />
@@ -198,6 +214,9 @@
     <ClInclude Include="src\utils\transform.hpp" />
     <ClInclude Include="src\utils\uniform_buffer.h" />
     <ClInclude Include="src\utils\vertex.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="lib\glfw3.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
