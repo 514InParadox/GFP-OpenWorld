@@ -1,5 +1,4 @@
-#ifndef _UTILS_COLLISION_SYSTEM_H
-#define _UTILS_COLLISION_SYSTEM_H
+#pragma once
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
@@ -60,6 +59,4 @@ private:
     BVHTree                        _bvh   = BVHTree(_cachedAabbs);
     std::vector<ContactManifold>   _manifolds;
 };
-
-#endif
 

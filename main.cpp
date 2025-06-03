@@ -4,8 +4,6 @@
 #include <iostream>
 #include <memory>
 
-#include "main.hpp"
-
 #include "test/hello.hpp"
 
 #include "utils/glsl_program.hpp"
@@ -50,7 +48,7 @@ int main(int argc, char *argv[]) {
     Options options = getOptions(argc, argv);
 
     try {
-        ModelImportApp app(options);
+        // ModelImportApp app(options);
         // TriangleApp app(options);
         // InitSceneApp app(options);
         //  CameraTestApp app(options);
