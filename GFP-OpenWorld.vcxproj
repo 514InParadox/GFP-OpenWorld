@@ -136,9 +136,12 @@
     <ClCompile Include="include\stb\stb_image.cpp" />
     <ClCompile Include="include\tinyobjloader\tiny_obj_loader.cc" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\animation\animation.cpp" />
     <ClCompile Include="src\app\application.cpp" />
     <ClCompile Include="src\app\cameraTestApp.cpp" />
+    <ClCompile Include="src\app\finalSceneApp.cpp" />
     <ClCompile Include="src\app\initSceneApp.cpp" />
+    <ClCompile Include="src\app\modelImportApp.cpp" />
     <ClCompile Include="src\app\testPhysicsApp.cpp" />
     <ClCompile Include="src\app\testPhysicsThreeApp.cpp" />
     <ClCompile Include="src\app\testPhysicsTwoApp.cpp" />
@@ -160,16 +163,21 @@
     <ClCompile Include="src\utils\transform.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\animation\animation.hpp" />
     <ClInclude Include="src\app\application.hpp" />
     <ClInclude Include="src\app\cameraTestApp.hpp" />
+    <ClInclude Include="src\app\finalSceneApp.hpp" />
     <ClInclude Include="src\app\initSceneApp.hpp" />
+    <ClInclude Include="src\app\modelImportApp.hpp" />
     <ClInclude Include="src\app\testPhysicsApp.hpp" />
+    <ClInclude Include="src\app\testPhysicsThreeApp.hpp" />
     <ClInclude Include="src\app\testPhysicsTwoApp.hpp" />
     <ClInclude Include="src\app\triangleApp.hpp" />
     <ClInclude Include="src\model\model.hpp" />
     <ClInclude Include="src\model\monkeyHead.hpp" />
     <ClInclude Include="src\model\triangle.hpp" />
     <ClInclude Include="src\test\hello.hpp" />
+    <ClInclude Include="src\utils\advance_camera.hpp" />
     <ClInclude Include="src\utils\bounding_box.hpp" />
     <ClInclude Include="src\utils\camera.hpp" />
     <ClInclude Include="src\utils\framebuffer.hpp" />
@@ -181,6 +189,7 @@
     <ClInclude Include="src\utils\input.hpp" />
     <ClInclude Include="src\utils\instanced_model.hpp" />
     <ClInclude Include="src\utils\light.hpp" />
+    <ClInclude Include="src\utils\physics.hpp" />
     <ClInclude Include="src\utils\plane.hpp" />
     <ClInclude Include="src\utils\skybox.hpp" />
     <ClInclude Include="src\utils\texture.hpp" />

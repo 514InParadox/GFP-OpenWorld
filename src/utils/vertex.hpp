@@ -2,6 +2,7 @@
 #define _UTILS_VERTEX_H 
 
 #include <glm/glm.hpp>
+#include <string>
 
 struct Vertex {
     glm::vec3 position;
@@ -12,6 +13,11 @@ struct Vertex {
         : position(p), normal(n), texCoord(texC) {}
     bool operator==(const Vertex& v) const {
         return (position == v.position) && (normal == v.normal) && (texCoord == v.texCoord);
+    }
+    std::string to_string() const {
+        return "p = (" + std::to_string(position.x) + ", " + std::to_string(position.y) + ", " + std::to_string(position.z) + "), "
+               + "n = (" + std::to_string(normal.x) + ", " + std::to_string(normal.y) + ", " + std::to_string(normal.z) + "), "
+               + "uv = (" + std::to_string(texCoord.x) + ", " + std::to_string(texCoord.y) + ")";
     }
 };
 

@@ -44,6 +44,8 @@ ImageTextureCubemap::ImageTextureCubemap(const std::vector<std::string>& filepat
     : _uris(filepaths) {
     assert(filepaths.size() == 6);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _handle);
+    // disable vertical flip for cubemap faces (stbi flip persists globally after 2D loads)
+    stbi_set_flip_vertically_on_load(false);
     
     for (uint32_t i = 0; i < 6; ++i) {
         int width, height, channels;

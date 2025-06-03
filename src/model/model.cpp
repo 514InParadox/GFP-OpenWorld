@@ -2,6 +2,8 @@
 #include <iostream>
 #include <limits>
 #include <unordered_map>
+#include <fstream>
+#include <sstream>
 
 #include <tinyobjloader/tiny_obj_loader.h>
 
@@ -9,60 +11,73 @@
 #include "utils/physics.hpp"
 
 Model::Model(const std::string& filepath) {
-    // TODOO: 替换 tinyobj 为自己的实现
-    tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
 
-    std::string warn, err;
+    // 仅支持文件中的 v, vn, vt, f 行
+    std::vector<glm::vec3> fvertices;
+    std::vector<glm::vec3> fnormals;
+    std::vector<glm::vec2> ftexCoords;
+    std::vector<uint32_t> findices;
 
-    std::string::size_type index = filepath.find_last_of("/");
-    std::string mtlBaseDir = filepath.substr(0, index + 1);
-
-    if (!tinyobj::LoadObj(
-            &attrib, &shapes, &materials, &warn, &err, filepath.c_str(), mtlBaseDir.c_str())) {
-        throw std::runtime_error("load " + filepath + " failure: " + err);
-    }
-
-    if (!warn.empty()) {
-        std::cerr << "Loading model " + filepath + " warnings: " << std::endl;
-        std::cerr << warn << std::endl;
-    }
-
-    if (!err.empty()) {
-        throw std::runtime_error("Loading model " + filepath + " error:\n" + err);
-    }
-
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
+    // 将 file 中分 v, vn, vt 存储的顶点以 f 聚合
+    std::vector<Vertex> vertices; 
     std::unordered_map<Vertex, uint32_t> uniqueVertices;
 
-    for (const auto& shape : shapes) {
-        for (const auto& index : shape.mesh.indices) {
-            Vertex vertex{};
+    std::vector<uint32_t> indices;
 
-            vertex.position.x = attrib.vertices[3 * index.vertex_index + 0];
-            vertex.position.y = attrib.vertices[3 * index.vertex_index + 1];
-            vertex.position.z = attrib.vertices[3 * index.vertex_index + 2];
+    std::ifstream file(filepath);
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open file: " + filepath);
+    }
 
-            if (index.normal_index >= 0) {
-                vertex.normal.x = attrib.normals[3 * index.normal_index + 0];
-                vertex.normal.y = attrib.normals[3 * index.normal_index + 1];
-                vertex.normal.z = attrib.normals[3 * index.normal_index + 2];
+    std::string line;
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        std::string type;
+        iss >> type;
+
+        if (type == "v") {
+            float x, y, z;
+            iss >> x >> y >> z;
+            fvertices.push_back(glm::vec3(x, y, z));
+        } else if (type == "vn") {
+            float xn, yn, zn;
+            iss >> xn >> yn >> zn;
+            fnormals.push_back(glm::vec3(xn, yn, zn));
+        } else if (type == "vt") {
+            float xt, yt;
+            iss >> xt >> yt;
+            ftexCoords.push_back(glm::vec2(xt, yt));
+        } else if (type == "f") {
+            std::string vertexStr;
+            uint32_t tPoint, lPoint, vcnt = 0;
+            while (iss >> vertexStr) {
+                std::istringstream viss(vertexStr);
+                std::string v, vt, vn;
+                
+                std::getline(viss, v, '/');
+                std::getline(viss, vt, '/');
+                std::getline(viss, vn, '/');
+
+                Vertex vert = Vertex(
+                    v.empty() ? glm::vec3() : fvertices[std::stoi(v) - 1],
+                    vn.empty() ? glm::vec3() : fnormals[std::stoi(vn) - 1],
+                    vt.empty() ? glm::vec2() : ftexCoords[std::stoi(vt) - 1]
+                );
+
+                if (uniqueVertices.count(vert) == 0) {
+                    uniqueVertices[vert] = static_cast<uint32_t>(vertices.size());
+                    vertices.push_back(vert);
+                }
+
+                ++vcnt;
+                if (vcnt >= 3) {
+                    indices.push_back(tPoint);
+                    indices.push_back(lPoint);
+                    indices.push_back(uniqueVertices[vert]);
+                }
+                lPoint = uniqueVertices[vert];
+                if (vcnt == 1) tPoint = lPoint;
             }
-
-            if (index.texcoord_index >= 0) {
-                vertex.texCoord.x = attrib.texcoords[2 * index.texcoord_index + 0];
-                vertex.texCoord.y = attrib.texcoords[2 * index.texcoord_index + 1];
-            }
-
-            // check if the vertex appeared before to reduce redundant data
-            if (uniqueVertices.count(vertex) == 0) {
-                uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-                vertices.push_back(vertex);
-            }
-
-            indices.push_back(uniqueVertices[vertex]);
         }
     }
 

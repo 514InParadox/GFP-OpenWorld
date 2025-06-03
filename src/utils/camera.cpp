@@ -14,12 +14,37 @@ glm::mat4 PerspectiveCamera::getProjectionMatrix() const {
 
 Frustum PerspectiveCamera::getFrustum() const {
     Frustum frustum;
-    // TODO: construct the frustum with the position and orientation of the camera
-    // Note: this is for Bonus project 'Frustum Culling'
-    // write your code here
-    // ----------------------------------------------------------------------
-    // ...
-    // ----------------------------------------------------------------------
+    
+    const glm::vec3 fv = transform.getFront();  // front vector
+    const glm::vec3 rv = transform.getRight();  // right vector  
+    const glm::vec3 uv = transform.getUp();     // up vector
+    
+    // Calculate half dimensions at near and far planes
+    const float halfVSide = zfar * tanf(fovy * 0.5f);
+    const float halfHSide = halfVSide * aspect;
+    const float halfVSideNear = znear * tanf(fovy * 0.5f);
+    const float halfHSideNear = halfVSideNear * aspect;
+    
+    // Front and back face normals point inward
+    frustum.planes[Frustum::NearFace] = {transform.position + znear * fv, fv};
+    frustum.planes[Frustum::FarFace] = {transform.position + zfar * fv, -fv};
+    
+    // Side planes: calculate normals for the pyramid sides
+    // Left plane
+    glm::vec3 leftNormal = glm::normalize(glm::cross(fv - rv * (halfHSide / zfar), uv));
+    frustum.planes[Frustum::LeftFace] = {transform.position, leftNormal};
+    
+    // Right plane  
+    glm::vec3 rightNormal = glm::normalize(glm::cross(uv, fv + rv * (halfHSide / zfar)));
+    frustum.planes[Frustum::RightFace] = {transform.position, rightNormal};
+    
+    // Bottom plane
+    glm::vec3 bottomNormal = glm::normalize(glm::cross(rv, fv - uv * (halfVSide / zfar)));
+    frustum.planes[Frustum::BottomFace] = {transform.position, bottomNormal};
+    
+    // Top plane
+    glm::vec3 topNormal = glm::normalize(glm::cross(fv + uv * (halfVSide / zfar), rv));
+    frustum.planes[Frustum::TopFace] = {transform.position, topNormal};
 
     return frustum;
 }

@@ -4,6 +4,8 @@
 #include <iostream>
 #include <memory>
 
+#include "main.hpp"
+
 #include "test/hello.hpp"
 
 #include "utils/glsl_program.hpp"
@@ -14,6 +16,7 @@
 #include "app/testPhysicsApp.hpp"
 #include "app/testPhysicsTwoApp.hpp"
 #include "app/testPhysicsThreeApp.hpp"
+#include "app/modelImportApp.hpp"
 
 Options getOptions(int argc, char* argv[]) {
     Options options;
@@ -24,9 +27,7 @@ Options getOptions(int argc, char* argv[]) {
     options.vSync = true;
     options.msaa = true;
     options.glVersion = {3, 3};
-    // options.backgroundColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     options.backgroundColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
-    // options.backgroundColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     options.assetRootDir = "./";
 
     return options;
@@ -46,9 +47,10 @@ int main(int argc, char *argv[]) {
     Options options = getOptions(argc, argv);
 
     try {
+        ModelImportApp app(options);
         // TriangleApp app(options);
         // InitSceneApp app(options);
-         CameraTestApp app(options);
+        //  CameraTestApp app(options);
         // TestPhysicsApp app(options);
         // TestPhysicsTwoApp app(options);
         //TestPhysicsThreeApp app(options);

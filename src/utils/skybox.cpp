@@ -93,9 +93,6 @@ SkyBox::~SkyBox() {
 }
 
 void SkyBox::draw(const glm::mat4& projection, const glm::mat4& view) {
-        // TODO:: draw skybox
-    // write your code here
-    // -----------------------------------------------
     // Disable depth writing to ensure the skybox is always rendered behind other objects
     glDepthFunc(GL_LEQUAL); // Allow skybox to render at the farthest depth
     glDepthMask(GL_FALSE);  // Disable depth writing for the skybox

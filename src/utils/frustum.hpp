@@ -16,14 +16,43 @@ public:
         NearFace = 4,
         FarFace = 5
     };
-
+    
     bool intersect(const BoundingBox& aabb, const glm::mat4& modelMatrix) const {
-        // TODO: judge whether the frustum intersects the bounding box
-        // Note: this is for Bonus project 'Frustum Culling'
-        // write your code here
-        // ------------------------------------------------------------
+        // Generate all 8 vertices of the bounding box
+        std::vector<glm::vec3> vertices = {
+            glm::vec3(aabb.min.x, aabb.min.y, aabb.min.z),
+            glm::vec3(aabb.max.x, aabb.min.y, aabb.min.z),
+            glm::vec3(aabb.min.x, aabb.max.y, aabb.min.z),
+            glm::vec3(aabb.max.x, aabb.max.y, aabb.min.z),
+            glm::vec3(aabb.min.x, aabb.min.y, aabb.max.z),
+            glm::vec3(aabb.max.x, aabb.min.y, aabb.max.z),
+            glm::vec3(aabb.min.x, aabb.max.y, aabb.max.z),
+            glm::vec3(aabb.max.x, aabb.max.y, aabb.max.z)
+        };
+        
+        // Transform vertices to world space using the model matrix
+        for (auto& vertex : vertices) {
+            glm::vec4 worldPos = modelMatrix * glm::vec4(vertex, 1.0f);
+            vertex = glm::vec3(worldPos) / worldPos.w; // Perspective divide
+        }
+        
+        // Check each frustum plane
+        for (int i = 0; i < 6; ++i) {
+            bool hasVertexInside = false;
+            
+            // Check if at least one vertex is on the positive side of this plane
+            for (const auto& vertex : vertices) {
+                if (planes[i].getSignedDistanceToPoint(vertex) > 0) {
+                    hasVertexInside = true;
+                    break;
+                }
+            }
+            
+            if (!hasVertexInside) {
+                return false;
+            }
+        }
         return true;
-        // ------------------------------------------------------------
     }
 };
 
