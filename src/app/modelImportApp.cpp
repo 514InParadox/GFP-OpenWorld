@@ -25,10 +25,6 @@ const std::vector<std::string> skyboxTexturePaths = {
     "resource/texture/skybox/default/back.jpg"
 };
 
-TexModel::TexModel(const std::string& filepath) : Model(filepath) {}
-
-TexModel::TexModel(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices) : Model(vertices, indices) {}
-
 ModelImportApp::ModelImportApp(const Options &options) : Application(options) {
     // set input mode
     glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -45,16 +41,16 @@ ModelImportApp::ModelImportApp(const Options &options) : Application(options) {
     _camera->transform.position = glm::vec3(0.0f, 0.0f, 15.0f);
 
     // init model
-    for (int i = 0; i < FRAMES; ++i) {
-        std::ostringstream oss;
-        oss << std::setw(4) << std::setfill('0') << i + 1;
-        try {
-            _models[i].reset(new Model(getAssetFullPath(modelPath + oss.str() + ".obj")));
-        } catch (const std::exception &e) {
-            std::cerr << "Failed to load model for frame " << i << ": " << e.what() << std::endl;
-            _models[i] = nullptr;
-        }
-    }
+    // for (int i = 0; i < FRAMES; ++i) {
+    //     std::ostringstream oss;
+    //     oss << std::setw(4) << std::setfill('0') << i + 1;
+    //     try {
+    //         _models[i].reset(new Model(getAssetFullPath(modelPath + oss.str() + ".obj")));
+    //     } catch (const std::exception &e) {
+    //         std::cerr << "Failed to load model for frame " << i << ": " << e.what() << std::endl;
+    //         _models[i] = nullptr;
+    //     }
+    // }
 
     _texModel.reset(new TexModel(getAssetFullPath(modelTexPath)));
     glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 0.0f, 0.0f));
@@ -131,17 +127,17 @@ void ModelImportApp::renderFrame() {
     glm::mat4 projection = _camera->getProjectionMatrix();
     glm::mat4 view = _camera->getViewMatrix();
 
-    _shader->use();
-    _shader->setUniformMat4("projection", projection);
-    _shader->setUniformMat4("view", view);
-    _shader->setUniformMat4("model", _models[objIdx]->transform.getLocalMatrix());
+    // _shader->use();
+    // _shader->setUniformMat4("projection", projection);
+    // _shader->setUniformMat4("view", view);
+    // _shader->setUniformMat4("model", _models[objIdx]->transform.getLocalMatrix());
 
-    if (_models[objIdx]) {
-        _models[objIdx]->draw();
-    } else {
-        // Handle the case where the model is not initialized
-        std::cerr << "Model at frame " << frameCount << " is not initialized!" << std::endl;
-    }
+    // if (_models[objIdx]) {
+    //     _models[objIdx]->draw();
+    // } else {
+    //     // Handle the case where the model is not initialized
+    //     std::cerr << "Model at frame " << frameCount << " is not initialized!" << std::endl;
+    // }
     
     _texShader->use();
     _texShader->setUniformMat4("projection", projection);
@@ -159,10 +155,10 @@ void ModelImportApp::renderFrame() {
 }
 
 void ModelImportApp::initShader() {
-    _shader.reset(new GLSLProgram);
-    _shader->attachVertexShaderFromFile(getAssetFullPath(vertexShaderAddr));
-    _shader->attachFragmentShaderFromFile(getAssetFullPath(fragmentShaderAddr));
-    _shader->link();
+    // _shader.reset(new GLSLProgram);
+    // _shader->attachVertexShaderFromFile(getAssetFullPath(vertexShaderAddr));
+    // _shader->attachFragmentShaderFromFile(getAssetFullPath(fragmentShaderAddr));
+    // _shader->link();
 
     _texShader.reset(new GLSLProgram);
     _texShader->attachVertexShaderFromFile(getAssetFullPath(texVertexShaderAddr));

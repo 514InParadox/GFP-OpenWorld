@@ -1,5 +1,6 @@
-#ifndef _UTILS_GLSL_PROGRAM_H
-#define _UTILS_GLSL_PROGRAM_H
+#pragma once
+
+// shader 类
 
 #include <string>
 #include <vector>
@@ -76,5 +77,3 @@ private:
 
     static GLuint createShader(const std::string& code, GLenum shaderType);
 };
-
-#endif

@@ -126,6 +126,7 @@ void GLSLProgram::link() {
 }
 
 void GLSLProgram::use() {
+    //std::cout << "_handdle: " << _handle << std::endl;
     glUseProgram(_handle);
 }
 

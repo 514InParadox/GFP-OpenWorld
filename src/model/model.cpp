@@ -10,8 +10,12 @@
 #include "model/model.hpp"
 #include "utils/physics.hpp"
 
-Model::Model(const std::string& filepath) {
+TexModel::TexModel(const std::string& filepath) : Model(filepath) {}
 
+TexModel::TexModel(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices) : Model(vertices, indices) {}
+
+// 这是 .obj 文件顶点、法向、面的导入方式，用以对应文档中了解 .obj 文件格式的部分。后续使用 Assimp 库支持需要使用的高级模型的导入。
+Model::Model(const std::string& filepath) {
     // 仅支持文件中的 v, vn, vt, f 行
     std::vector<glm::vec3> fvertices;
     std::vector<glm::vec3> fnormals;

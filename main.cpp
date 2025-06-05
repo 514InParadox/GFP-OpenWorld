@@ -3,6 +3,9 @@
 
 #include <iostream>
 #include <memory>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 #include "test/hello.hpp"
 
@@ -18,6 +21,7 @@
 #include "utils/collision_system.hpp"
 #include "app/lightingTestApp.hpp"
 #include "app/lightingTestApp2.hpp"
+#include "app/final/finalSceneApp.hpp"
 
 Options getOptions(int argc, char* argv[]) {
     Options options;
@@ -56,9 +60,10 @@ int main(int argc, char *argv[]) {
          //CameraTestApp app(options);
         // TestPhysicsApp app(options);
         // TestPhysicsTwoApp app(options);
-        //TestPhysicsThreeApp app(options);
+        // TestPhysicsThreeApp app(options);
         //lightingTestApp app(options);
-        lightingTestApp2 app(options);
+        // lightingTestApp2 app(options);
+        FinalSceneApp app(options);
         app.run();
     } catch (std::runtime_error& e) {
         std::cerr << e.what() << std::endl;

@@ -1,0 +1,53 @@
+#pragma once
+
+#include <string>
+#include <vector>
+#include <math.h>
+
+// ===========================================================
+// ||                     game constant                     ||
+// ===========================================================
+// modifiable theoratically
+
+constexpr float playerMoveSpeedSlow = 6.0f;
+constexpr float playerMoveSpeedFast = 12.0f;
+
+constexpr float entityMoveSpeedSlow = 3.0f;
+constexpr float entityMoveSpeedFast = 11.0f;
+
+// Non-const variables need external linkage declaration
+extern float cameraRotateSpeed;
+
+// ===========================================================
+// ||                 math & util constant                  ||
+// ===========================================================
+
+constexpr float pi = 3.14159265358979323846f;
+constexpr float a2r = pi / 180;
+
+// used for traverse neighboring lattices
+constexpr int dx[] = {0, 1, -1, 0, 0};
+constexpr int dy[] = {0, 0, 0, 1, -1};
+
+// ===========================================================
+// ||                     resource path                     ||
+// ===========================================================
+
+// External declarations for non-constexpr variables
+extern const std::string entityPath;
+extern const std::string mitaPath;
+extern const std::string mapPath;
+
+extern const std::string texVertexShaderAddr;
+extern const std::string texFragmentShaderAddr;
+
+extern const std::string vertexShaderAddr;
+extern const std::string fragmentShaderAddr;
+
+extern const std::string entityVertexShaderAddr;
+extern const std::string entityFragmentShaderAddr;
+
+extern const std::string mapVertexShaderAddr;
+extern const std::string mapFragmentShaderAddr;
+
+extern const std::vector<std::string> skyboxTexturePaths;

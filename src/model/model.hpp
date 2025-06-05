@@ -9,6 +9,7 @@
 #include "utils/transform.hpp"
 #include "utils/vertex.hpp"
 #include "utils/physics.hpp"
+#include "utils/texture2d.hpp"
 // 前向声明避免循环引用
 class Physics;
 
@@ -88,4 +89,13 @@ protected:
     void initBoxGLResources();
 
     void cleanup();
+};
+
+class TexModel : public Model {
+public:
+    TexModel(const std::string& filepath);
+
+    TexModel(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
+
+    std::shared_ptr<Texture2D> mapKd;
 };

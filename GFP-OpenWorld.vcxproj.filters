@@ -111,10 +111,16 @@
     <ClCompile Include="src\animation\animation.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\app\finalSceneApp.cpp">
+    <ClCompile Include="src\app\modelImportApp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\app\modelImportApp.cpp">
+    <ClCompile Include="src\app\final\finalSceneApp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\model\advancedModel.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\model\mesh.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -209,9 +215,6 @@
     <ClInclude Include="src\animation\animation.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\app\finalSceneApp.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="src\app\modelImportApp.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -239,8 +242,24 @@
     <ClInclude Include="src\app\lightingTestApp2.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="src\app\final\finalSceneApp.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\model\advancedModel.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\model\mesh.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\final\srcDef.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="lib\glfw3.lib" />
+    <Library Include="lib\assimp.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="lib\assimp.dll" />
   </ItemGroup>
 </Project>
