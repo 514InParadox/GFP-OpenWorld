@@ -147,6 +147,7 @@
     <ClCompile Include="src\animation\animation.cpp" />
     <ClCompile Include="src\app\application.cpp" />
     <ClCompile Include="src\app\cameraTestApp.cpp" />
+    <ClCompile Include="src\app\final\entity.cpp" />
     <ClCompile Include="src\app\final\finalSceneApp.cpp" />
     <ClCompile Include="src\app\final\map.cpp" />
     <ClCompile Include="src\app\final\player.cpp" />
@@ -183,6 +184,7 @@
     <ClInclude Include="src\animation\animation.hpp" />
     <ClInclude Include="src\app\application.hpp" />
     <ClInclude Include="src\app\cameraTestApp.hpp" />
+    <ClInclude Include="src\app\final\entity.hpp" />
     <ClInclude Include="src\app\final\finalSceneApp.hpp" />
     <ClInclude Include="src\app\final\map.hpp" />
     <ClInclude Include="src\app\final\player.hpp" />
