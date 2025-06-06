@@ -24,7 +24,8 @@ void main() {
     
     vec3 texColor = texture(mapKd, fTexCoord).rgb; 
 
+    fragColor = vec4(texColor, 1.0f);
     // fragColor = vec4(texColor * (ambient + diffuse), 1.0f);
     // fragColor = vec4(ambient + diffuse, 1.0f);
-    fragColor = vec4(normal, 1.0f);
+    // fragColor = vec4(normal, 1.0f);
 }

@@ -13,6 +13,7 @@
 #include "utils/frame_rate_indicator.hpp"
 #include "utils/gl_utility.hpp"
 #include "utils/input.hpp"
+#include "utils/collision_system.hpp"
 
 struct Options {
     std::string assetRootDir;
@@ -36,7 +37,7 @@ public:
 
     virtual ~Application();
 
-    void run();
+    virtual void run();
 
 protected:
     /* _assetPath */

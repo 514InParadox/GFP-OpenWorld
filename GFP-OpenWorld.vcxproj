@@ -147,7 +147,10 @@
     <ClCompile Include="src\animation\animation.cpp" />
     <ClCompile Include="src\app\application.cpp" />
     <ClCompile Include="src\app\cameraTestApp.cpp" />
+    <ClCompile Include="src\app\final\dialog.cpp" />
+    <ClCompile Include="src\app\final\entity.cpp" />
     <ClCompile Include="src\app\final\finalSceneApp.cpp" />
+    <ClCompile Include="src\app\final\interface.cpp" />
     <ClCompile Include="src\app\final\map.cpp" />
     <ClCompile Include="src\app\final\player.cpp" />
     <ClCompile Include="src\app\final\srcDef.cpp" />
@@ -183,10 +186,14 @@
     <ClInclude Include="src\animation\animation.hpp" />
     <ClInclude Include="src\app\application.hpp" />
     <ClInclude Include="src\app\cameraTestApp.hpp" />
+    <ClInclude Include="src\app\final\dialog.hpp" />
+    <ClInclude Include="src\app\final\entity.hpp" />
     <ClInclude Include="src\app\final\finalSceneApp.hpp" />
+    <ClInclude Include="src\app\final\interface.hpp" />
     <ClInclude Include="src\app\final\map.hpp" />
     <ClInclude Include="src\app\final\player.hpp" />
     <ClInclude Include="src\app\final\srcDef.hpp" />
+    <ClInclude Include="src\app\final\text.hpp" />
     <ClInclude Include="src\app\initSceneApp.hpp" />
     <ClInclude Include="src\app\lightingTestApp.hpp" />
     <ClInclude Include="src\app\lightingTestApp2.hpp" />

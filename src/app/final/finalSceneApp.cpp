@@ -5,6 +5,12 @@
 #include <math.h>
 #include <chrono>
 
+float distance(const glm::vec2 &lhs, const glm::vec2 &rhs) {
+    float dx = lhs.x - rhs.x,
+          dy = lhs.y - rhs.y;
+    return sqrt(dx * dx + dy * dy);
+}
+
 FinalSceneApp::FinalSceneApp(const Options &options) : Application(options) {
     // set input mode
     glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -22,11 +28,12 @@ FinalSceneApp::FinalSceneApp(const Options &options) : Application(options) {
 
     _camera.reset(new PerspectiveCamera(glm::radians(60.0f), aspect, znear, zfar));
     // _camera->transform.position = glm::vec3(0.0f, 1.8f, 0.0f);
-    _camera->transform.position = glm::vec3(-150.0f, 1.8f, -150.0f);
+    _camera->transform.position = glm::vec3(-147.0f, 1.8f, -147.0f);
 
     // init NPC
     _entity.reset(new AdvancedModel(getAssetFullPath(entityPath)));
     _mita.reset(new AdvancedModel(getAssetFullPath(mitaPath)));
+    _mita->transform.scale = glm::vec3(0.5f);
 
     // init map
     _map.reset(new AdvancedModel(getAssetFullPath(mapPath)));
@@ -41,11 +48,34 @@ FinalSceneApp::FinalSceneApp(const Options &options) : Application(options) {
     
     // Initialize frame time
     _lastFrameTime = std::chrono::high_resolution_clock::now();
+
+    // Initialize interface
+    startInterface.reset(new Interface(getAssetFullPath(startInterfaceImageAddr)));
+    loseInterface.reset(new Interface(getAssetFullPath(loseInterfaceImageAddr)));
+    winInterface.reset(new Interface(getAssetFullPath(winInterfaceImageAddr)));
 }
 
 // camera 在平面上移动
 void FinalSceneApp::handleInput() {
-    static glm::vec2 playerPosition(0.0f, 0.0f);
+    static glm::vec2 playerPosition(-147.0f, -147.0f);
+    switch (gameState) {
+        case GameState::StartInterface:
+            if (_input.mouse.press.left)
+                gameState = GameState::AfterMita;
+            return;
+            // break;
+        case GameState::LoseInterface:
+            if (_input.mouse.press.left)
+                gameState = GameState::StartInterface;
+            return;
+            // break;
+        case GameState::WinInterface:
+            if (_input.mouse.press.left)
+                gameState = GameState::StartInterface;
+            return;
+        default:
+            break;
+    }
     // Update frame time for frame-rate independent movement
     updateFrameTime();
     
@@ -61,6 +91,7 @@ void FinalSceneApp::handleInput() {
         return;
     }    
 
+    // player movement
     glm::vec3 deltaPosition = glm::vec3(0.0f);
     glm::vec3 dbg3D_deltaPosition = glm::vec3(0.0f);
     if (_input.keyboard.keyStates[GLFW_KEY_W] != GLFW_RELEASE) {
@@ -99,15 +130,12 @@ void FinalSceneApp::handleInput() {
         // _camera->transform.position += (cameraMoveSpeed * _deltaTime) * horizontalRight;
     }
 
+    playerPosition = getCorrectPos(playerPosition, glm::vec2(deltaPosition.x, deltaPosition.z));
+    _camera->transform.position = getCameraPos(playerPosition, glm::vec2(deltaPosition.x, deltaPosition.z), _deltaTime);
 
-    // camera 在 2D/3D 上运动
-    // playerPosition = getCorrectPos(playerPosition, glm::vec2(deltaPosition.x, deltaPosition.z));
-    // _camera->transform.position = getCameraPos(playerPosition, glm::vec2(deltaPosition.x, deltaPosition.y));
+    // _camera->transform.position += dbg3D_deltaPosition;
 
-    _camera->transform.position += dbg3D_deltaPosition;
-
-
-
+    // view movement
     if (_input.mouse.move.xNow != _input.mouse.move.xOld) {
         float mouse_movement_in_x_direction = _input.mouse.move.xNow - _input.mouse.move.xOld;
         float delta = cameraRotateSpeed * mouse_movement_in_x_direction;
@@ -122,13 +150,41 @@ void FinalSceneApp::handleInput() {
         _camera->transform.rotation = glm::angleAxis(-delta, _camera->transform.getRight()) * _camera->transform.rotation;
     }
 
+    if (gameState == GameState::AfterMita && _input.mouse.press.left) {
+        if (false) {
+            gameState = GameState::AfterEntity;
+            _mapFinalLattice = std::make_pair(
+                (int)floor((playerPosition.x + 150) / 300.0f),
+                (int)floor((playerPosition.y + 150) / 300.0f)
+            );
+        }
+        // 射击检测，视角射线经过 entity 的碰撞箱
+    }
+
     _input.forwardState();
 }
 
 void FinalSceneApp::renderFrame() {
-    static uint32_t frameCount = 0;
-    constexpr uint32_t endurance = 5;
-    uint32_t objIdx = frameCount / endurance;
+    if (gameState == GameState::StartInterface ||
+        gameState == GameState::LoseInterface ||
+        gameState == GameState::WinInterface) {
+        _interfaceShader->use();
+        _interfaceShader->setUniformInt("textureImage", 0);
+        switch (gameState) {
+            case GameState::StartInterface:
+                startInterface->draw();
+                break;
+            case GameState::LoseInterface:
+                loseInterface->draw();
+                break;
+            case GameState::WinInterface:
+               winInterface->draw();
+                break;
+            default:
+                assert(false);
+        }
+        return;
+    }
 
     glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -148,6 +204,11 @@ void FinalSceneApp::renderFrame() {
         (int)floor((playerPosition.y + 150) / 300.0f)
     );
 
+    _entity->transform.position = glm::vec3(-145, 0.5f, -145);
+    _entity->transform.scale = glm::vec3(0.3f);
+
+    _mita->transform.position = glm::vec3(mapLattice.first * 300.0f - 150.0f + mitaCoord.first, 0.0f, mapLattice.second * 300.0f - 150.0f + mitaCoord.second);
+
     _mapShader->use();
 
     _mapShader->setUniformMat4("projection", projection);
@@ -156,39 +217,45 @@ void FinalSceneApp::renderFrame() {
 
     // _map->draw();
 
-    for (int d = 0; d <= 4; ++d) {
-        int tx = dx[d] + mapLattice.first,
+    if (gameState != GameState::AfterEntity) {
+        for (int d = 0; d <= 4; ++d) {
+            int tx = dx[d] + mapLattice.first,
             ty = dy[d] + mapLattice.second;
-        glm::mat4 mapPos = glm::translate(glm::mat4(1.0f), glm::vec3(tx * 300.0f - 150, 3.0f, ty * 300.0f - 150));
-        _mapShader->setUniformMat4("model", mapPos);
-        _map->draw();
+            glm::mat4 mapPos = glm::translate(glm::mat4(1.0f), glm::vec3(tx * 300.0f - 150, 3.0f, ty * 300.0f - 150));
+            _mapShader->setUniformMat4("model", mapPos);
+            _map->draw();
+        }
+    } else {
+        for (int d = 0; d <= 0; ++d) {
+            int tx = dx[d] + mapLattice.first,
+            ty = dy[d] + mapLattice.second;
+            glm::mat4 mapPos = glm::translate(glm::mat4(1.0f), glm::vec3(tx * 300.0f - 150, 3.0f, ty * 300.0f - 150));
+            _mapShader->setUniformMat4("model", mapPos);
+            _map->draw();
+        }
     }
 
     // draw entity
-    // _entityShader->use();
-    // _entityShader->setUniformMat4("projection", projection);
-    // _entityShader->setUniformMat4("view", view);
-    // _entityShader->setUniformMat4("model", _entity->transform.getLocalMatrix());
-    // _entity->draw();
+    if (gameState == GameState::BeforeMita || gameState == GameState::AfterMita) {
+        _entityShader->use();
+        _entityShader->setUniformMat4("projection", projection);
+        _entityShader->setUniformMat4("view", view);
+        _entityShader->setUniformMat4("model", _entity->transform.getLocalMatrix());
+        _entity->draw();
+    }
 
     // draw mita
-    // _mitaShader->use();
-    // _mitaShader->setUniformMat4("projection", projection);
-    // _mitaShader->setUniformMat4("view", view);
-    // _mitaShader->setUniformMat4("model", _mita->transform.getLocalMatrix());
-    // _mitaShader->setUniformInt("mapKd", 0);
-    // _mita->draw();
-
-
-    frameCount = (frameCount + 1) % (FRAMES * 5);
+    if (gameState == GameState::BeforeMita || gameState == GameState::DuringMita) {
+        _mitaShader->use();
+        _mitaShader->setUniformMat4("projection", projection);
+        _mitaShader->setUniformMat4("view", view);
+        _mitaShader->setUniformMat4("model", _mita->transform.getLocalMatrix());
+        _mitaShader->setUniformInt("mapKd", 0);
+        _mita->draw();
+    }
 }
 
 void FinalSceneApp::initShader() {
-    // _shader.reset(new GLSLProgram);
-    // _shader->attachVertexShaderFromFile(getAssetFullPath(vertexShaderAddr));
-    // _shader->attachFragmentShaderFromFile(getAssetFullPath(fragmentShaderAddr));
-    // _shader->link();
-
     _texShader.reset(new GLSLProgram);
     _texShader->attachVertexShaderFromFile(getAssetFullPath(texVertexShaderAddr));
     _texShader->attachFragmentShaderFromFile(getAssetFullPath(texFragmentShaderAddr));
@@ -214,10 +281,66 @@ void FinalSceneApp::updateFrameTime() {
     auto currentTime = std::chrono::high_resolution_clock::now();
     _deltaTime = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - _lastFrameTime).count();
     
-    // Cap delta time to avoid large jumps (same pattern as other apps)
     if (_deltaTime > 0.05f) {
         _deltaTime = 0.05f;
     }
     
     _lastFrameTime = currentTime;
+}
+
+void FinalSceneApp::updateState() {
+    glm::vec2 mitaPos;
+    std::pair<int, int> mapLattice;
+    switch (gameState) {
+        case GameState::BeforeMita:
+            if (distance(_entityLogic.getEntityPos(), playerPosition) < EntityTriggleDist) {
+                gameState = GameState::LoseInterface;
+            }
+            mitaPos = glm::vec2(_mita->transform.position.x, _mita->transform.position.z);
+            if (distance(mitaPos, playerPosition) < MitaTriggleDist) {
+                gameState = GameState::DuringMita;
+                // _dialog.Start();
+            }
+            break;
+        case GameState::DuringMita:
+            // if (_dialog.IsFinish()) {
+            if (false) {
+                gameState = GameState::AfterMita;
+            }
+            break;
+        case GameState::AfterMita:
+            if (distance(_entityLogic.getEntityPos(), playerPosition) < EntityTriggleDist) {
+                gameState = GameState::LoseInterface;
+            }
+            break;
+        case GameState::AfterEntity:
+            mapLattice = std::make_pair(
+                (int)floor((playerPosition.x + 150) / 300.0f),
+                (int)floor((playerPosition.y + 150) / 300.0f)
+            );
+            if (mapLattice != _mapFinalLattice) {
+                gameState = GameState::WinInterface;
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+void FinalSceneApp::run() {
+    while (!glfwWindowShouldClose(_window)) {
+        updateTime();
+
+        updateState();
+
+        handleInput();
+
+        // 新增：在渲染前做离散碰撞检测
+        CollisionSystem::instance().update(_deltaTime);
+
+        renderFrame();
+
+        glfwSwapBuffers(_window);
+        glfwPollEvents();
+    }
 }

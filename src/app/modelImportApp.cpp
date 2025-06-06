@@ -40,18 +40,6 @@ ModelImportApp::ModelImportApp(const Options &options) : Application(options) {
     _camera.reset(new PerspectiveCamera(glm::radians(60.0f), aspect, znear, zfar));
     _camera->transform.position = glm::vec3(0.0f, 0.0f, 15.0f);
 
-    // init model
-    // for (int i = 0; i < FRAMES; ++i) {
-    //     std::ostringstream oss;
-    //     oss << std::setw(4) << std::setfill('0') << i + 1;
-    //     try {
-    //         _models[i].reset(new Model(getAssetFullPath(modelPath + oss.str() + ".obj")));
-    //     } catch (const std::exception &e) {
-    //         std::cerr << "Failed to load model for frame " << i << ": " << e.what() << std::endl;
-    //         _models[i] = nullptr;
-    //     }
-    // }
-
     _texModel.reset(new TexModel(getAssetFullPath(modelTexPath)));
     glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 0.0f, 0.0f));
     transform = glm::rotate(transform, 45 * a2r, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -149,9 +137,6 @@ void ModelImportApp::renderFrame() {
     _texModel->draw();
     
     _skybox->draw(projection, view);
-
-
-    frameCount = (frameCount + 1) % (FRAMES * 5);
 }
 
 void ModelImportApp::initShader() {

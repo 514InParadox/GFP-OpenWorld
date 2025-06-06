@@ -7,6 +7,8 @@
 // Definition of non-const variable
 float cameraRotateSpeed = 0.002f;
 
+// constexpr std::pair<int, int> mitaCoord = std::make_pair(286, 188);
+
 // ===========================================================
 // ||                     resource path                     ||
 // ===========================================================
@@ -37,3 +39,7 @@ const std::vector<std::string> skyboxTexturePaths = {
     "resource/texture/skybox/default/front.jpg",
     "resource/texture/skybox/default/back.jpg"
 };
+
+extern const std::string startInterfaceImageAddr = "resouece/texture/startScene";
+extern const std::string loseInterfaceImageAddr  = "resouece/texture/loseScene";
+extern const std::string winInterfaceImageAddr   = "resouece/texture/winScene";

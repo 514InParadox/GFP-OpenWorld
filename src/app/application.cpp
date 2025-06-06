@@ -1,5 +1,4 @@
 #include "application.hpp"
-#include "utils/collision_system.hpp" // 新增
 
 Application::Application(const Options& options)
     : _assetRootDir(options.assetRootDir), _windowTitle(options.windowTitle),

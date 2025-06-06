@@ -7,8 +7,6 @@
 #include "utils/skybox.hpp"
 #include "utils/texture2d.hpp"
 
-#define FRAMES 10
-
 class ModelImportApp : public Application {
 public:
     ModelImportApp(const Options &options);
@@ -23,11 +21,7 @@ private:
     std::unique_ptr<Camera> _camera;
     
     std::unique_ptr<TexModel> _texModel;
-
-    // std::unique_ptr<Model> _models[FRAMES];
-    // std::array<std::unique_ptr<Model>, FRAMES> _models;
-
-    // std::unique_ptr<GLSLProgram> _shader;
+    
     std::unique_ptr<GLSLProgram> _texShader;
 
     std::unique_ptr<SkyBox> _skybox;

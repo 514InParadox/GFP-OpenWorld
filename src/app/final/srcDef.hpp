@@ -18,6 +18,11 @@ constexpr float entityMoveSpeedFast = 11.0f;
 // Non-const variables need external linkage declaration
 extern float cameraRotateSpeed;
 
+constexpr std::pair<int, int> mitaCoord = std::make_pair(286, 189);
+
+constexpr float EntityTriggleDist = 1.0f;
+constexpr float MitaTriggleDist = 5.0f;
+
 // ===========================================================
 // ||                 math & util constant                  ||
 // ===========================================================
@@ -51,3 +56,7 @@ extern const std::string mapVertexShaderAddr;
 extern const std::string mapFragmentShaderAddr;
 
 extern const std::vector<std::string> skyboxTexturePaths;
+
+extern const std::string startInterfaceImageAddr;
+extern const std::string loseInterfaceImageAddr;
+extern const std::string winInterfaceImageAddr;
