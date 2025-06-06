@@ -21,6 +21,10 @@
 #include "utils/collision_system.hpp"
 #include "app/lightingTestApp.hpp"
 #include "app/lightingTestApp2.hpp"
+#include "app/glowTestApp.hpp"
+#include "app/audioTestApp.hpp"
+#include "app/audioPlayerTestApp.hpp"
+#include "app/minimalAudioTestApp.hpp"
 #include "app/final/finalSceneApp.hpp"
 
 Options getOptions(int argc, char* argv[]) {
@@ -32,7 +36,7 @@ Options getOptions(int argc, char* argv[]) {
     options.vSync = true;
     options.msaa = true;
     options.glVersion = {3, 3};
-    options.backgroundColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
+    options.backgroundColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     options.assetRootDir = "./";
 
     return options;
@@ -63,7 +67,11 @@ int main(int argc, char *argv[]) {
         // TestPhysicsThreeApp app(options);
         //lightingTestApp app(options);
         // lightingTestApp2 app(options);
-        FinalSceneApp app(options);
+        // GlowTestApp app(options);
+        // AudioTestApp app(options);
+        AudioPlayerTestApp app(options);
+        // MinimalAudioTestApp app(options);
+        // FinalSceneApp app(options);
         app.run();
     } catch (std::runtime_error& e) {
         std::cerr << e.what() << std::endl;

@@ -111,14 +111,14 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);GLM_ENABLE_EXPERIMENTAL</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>D:\GFP-OpenWorld\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>E:\Academy\course\Y2S2\Graphic\finalProj\GFP-OpenWorld\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;irrKlang.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -146,14 +146,18 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\animation\animation.cpp" />
     <ClCompile Include="src\app\application.cpp" />
+    <ClCompile Include="src\app\audioPlayerTestApp.cpp" />
+    <ClCompile Include="src\app\audioTestApp.cpp" />
     <ClCompile Include="src\app\cameraTestApp.cpp" />
-    <ClCompile Include="src\app\final\dialog.cpp" />
+    <ClCompile Include="src\app\minimalAudioTestApp.cpp" />
     <ClCompile Include="src\app\final\entity.cpp" />
+    <ClCompile Include="src\app\final\dialog.cpp" />
     <ClCompile Include="src\app\final\finalSceneApp.cpp" />
     <ClCompile Include="src\app\final\interface.cpp" />
     <ClCompile Include="src\app\final\map.cpp" />
     <ClCompile Include="src\app\final\player.cpp" />
     <ClCompile Include="src\app\final\srcDef.cpp" />
+    <ClCompile Include="src\app\glowTestApp.cpp" />
     <ClCompile Include="src\app\initSceneApp.cpp" />
     <ClCompile Include="src\app\lightingTestApp.cpp" />
     <ClCompile Include="src\app\lightingTestApp2.cpp" />
@@ -168,6 +172,7 @@
     <ClCompile Include="src\model\triangle.cpp" />
     <ClCompile Include="src\test\hello.cpp" />
     <ClCompile Include="src\utils\advance_camera.cpp" />
+    <ClCompile Include="src\utils\audio_player.cpp" />
     <ClCompile Include="src\utils\bvh.cpp" />
     <ClCompile Include="src\utils\camera.cpp" />
     <ClCompile Include="src\utils\collision_system.cpp" />
@@ -185,9 +190,12 @@
   <ItemGroup>
     <ClInclude Include="src\animation\animation.hpp" />
     <ClInclude Include="src\app\application.hpp" />
+    <ClInclude Include="src\app\audioPlayerTestApp.hpp" />
+    <ClInclude Include="src\app\audioTestApp.hpp" />
     <ClInclude Include="src\app\cameraTestApp.hpp" />
-    <ClInclude Include="src\app\final\dialog.hpp" />
+    <ClInclude Include="src\app\minimalAudioTestApp.hpp" />
     <ClInclude Include="src\app\final\entity.hpp" />
+    <ClInclude Include="src\app\final\dialog.hpp" />
     <ClInclude Include="src\app\final\finalSceneApp.hpp" />
     <ClInclude Include="src\app\final\interface.hpp" />
     <ClInclude Include="src\app\final\map.hpp" />
@@ -209,6 +217,7 @@
     <ClInclude Include="src\model\triangle.hpp" />
     <ClInclude Include="src\test\hello.hpp" />
     <ClInclude Include="src\utils\advance_camera.hpp" />
+    <ClInclude Include="src\utils\audio_player.hpp" />
     <ClInclude Include="src\utils\bounding_box.hpp" />
     <ClInclude Include="src\utils\bounding_sphere.hpp" />
     <ClInclude Include="src\utils\bvh.hpp" />
