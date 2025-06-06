@@ -13,6 +13,21 @@ Graphic Final Project - Open World
 模型等可以使用相对路径，当前位置即 `main.cpp` 所在位置；
 include 文件夹有 `~/include` 和 `~/src` 两个，前者为外部库，后者为此次开发内容。
 
+请自行编译 lib 库和 dll 库中的内容。
+
+```
+dll/
+├── assimp-vc143-mt.dll
+├── assimp-vc143-mtd.dll
+└── assimp.dll
+
+lib
+├── assimp-vc143-mt.lib
+├── assimp-vc143-mtd.lib
+├── assimp.lib
+└── glfw3.lib
+```
+
 ## 文件结构
 
 ```

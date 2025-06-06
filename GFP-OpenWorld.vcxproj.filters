@@ -123,6 +123,15 @@
     <ClCompile Include="src\model\mesh.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\app\final\srcDef.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\final\player.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\final\map.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\test\hello.hpp">
@@ -252,6 +261,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\app\final\srcDef.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\final\player.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\final\map.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

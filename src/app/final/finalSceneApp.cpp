@@ -1,4 +1,6 @@
 #include "finalSceneApp.hpp"
+#include "player.hpp"
+
 #include <iomanip>
 #include <math.h>
 #include <chrono>
@@ -10,13 +12,17 @@ FinalSceneApp::FinalSceneApp(const Options &options) : Application(options) {
     _input.mouse.move.yNow = _input.mouse.move.yOld = 0.5f * _windowHeight;
     glfwSetCursorPos(_window, _input.mouse.move.xNow, _input.mouse.move.yNow);
 
-    // init cameras
+    // init player
+    playerPosition = glm::vec2(0.0f, 0.0f);
+
+    // init camera
     const float aspect = 1.0f * _windowWidth / _windowHeight;
     constexpr float znear = 0.1f;
     constexpr float zfar = 10000.0f;
 
     _camera.reset(new PerspectiveCamera(glm::radians(60.0f), aspect, znear, zfar));
-    _camera->transform.position = glm::vec3(0.0f, 1.8f, 0.0f);
+    // _camera->transform.position = glm::vec3(0.0f, 1.8f, 0.0f);
+    _camera->transform.position = glm::vec3(-150.0f, 1.8f, -150.0f);
 
     // init NPC
     _entity.reset(new AdvancedModel(getAssetFullPath(entityPath)));
@@ -39,6 +45,7 @@ FinalSceneApp::FinalSceneApp(const Options &options) : Application(options) {
 
 // camera 在平面上移动
 void FinalSceneApp::handleInput() {
+    static glm::vec2 playerPosition(0.0f, 0.0f);
     // Update frame time for frame-rate independent movement
     updateFrameTime();
     
@@ -53,33 +60,53 @@ void FinalSceneApp::handleInput() {
         glfwSetWindowShouldClose(_window, true);
         return;
     }    
-      if (_input.keyboard.keyStates[GLFW_KEY_W] != GLFW_RELEASE) {
+
+    glm::vec3 deltaPosition = glm::vec3(0.0f);
+    glm::vec3 dbg3D_deltaPosition = glm::vec3(0.0f);
+    if (_input.keyboard.keyStates[GLFW_KEY_W] != GLFW_RELEASE) {
         // Project camera front direction onto XZ plane (horizontal plane)
         glm::vec3 front = _camera->transform.getFront();
         glm::vec3 horizontalFront = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
-        _camera->transform.position += (cameraMoveSpeed * _deltaTime) * horizontalFront;
+        deltaPosition += (cameraMoveSpeed * _deltaTime) * horizontalFront;
+        dbg3D_deltaPosition += (cameraMoveSpeed * _deltaTime) * front;
+        // _camera->transform.position += (cameraMoveSpeed * _deltaTime) * horizontalFront;
     }
 
     if (_input.keyboard.keyStates[GLFW_KEY_A] != GLFW_RELEASE) {
         // Project camera right direction onto XZ plane (horizontal plane)
         glm::vec3 right = _camera->transform.getRight();
         glm::vec3 horizontalRight = glm::normalize(glm::vec3(right.x, 0.0f, right.z));
-        _camera->transform.position -= (cameraMoveSpeed * _deltaTime) * horizontalRight;
+        deltaPosition -= (cameraMoveSpeed * _deltaTime) * horizontalRight;
+        dbg3D_deltaPosition -= (cameraMoveSpeed * _deltaTime) * right;
+        // _camera->transform.position -= (cameraMoveSpeed * _deltaTime) * horizontalRight;
     }
 
     if (_input.keyboard.keyStates[GLFW_KEY_S] != GLFW_RELEASE) {
         // Project camera front direction onto XZ plane (horizontal plane)
         glm::vec3 front = _camera->transform.getFront();
         glm::vec3 horizontalFront = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
-        _camera->transform.position -= (cameraMoveSpeed * _deltaTime) * horizontalFront;
+        deltaPosition -= (cameraMoveSpeed * _deltaTime) * horizontalFront;
+        dbg3D_deltaPosition -= (cameraMoveSpeed * _deltaTime) * front;
+        // _camera->transform.position -= (cameraMoveSpeed * _deltaTime) * horizontalFront;
     }
 
     if (_input.keyboard.keyStates[GLFW_KEY_D] != GLFW_RELEASE) {
         // Project camera right direction onto XZ plane (horizontal plane)
         glm::vec3 right = _camera->transform.getRight();
         glm::vec3 horizontalRight = glm::normalize(glm::vec3(right.x, 0.0f, right.z));
-        _camera->transform.position += (cameraMoveSpeed * _deltaTime) * horizontalRight;
+        deltaPosition += (cameraMoveSpeed * _deltaTime) * horizontalRight;
+        dbg3D_deltaPosition += (cameraMoveSpeed * _deltaTime) * right;
+        // _camera->transform.position += (cameraMoveSpeed * _deltaTime) * horizontalRight;
     }
+
+
+    // camera 在 2D/3D 上运动
+    // playerPosition = getCorrectPos(playerPosition, glm::vec2(deltaPosition.x, deltaPosition.z));
+    // _camera->transform.position = getCameraPos(playerPosition, glm::vec2(deltaPosition.x, deltaPosition.y));
+
+    _camera->transform.position += dbg3D_deltaPosition;
+
+
 
     if (_input.mouse.move.xNow != _input.mouse.move.xOld) {
         float mouse_movement_in_x_direction = _input.mouse.move.xNow - _input.mouse.move.xOld;

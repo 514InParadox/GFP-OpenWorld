@@ -148,6 +148,8 @@
     <ClCompile Include="src\app\application.cpp" />
     <ClCompile Include="src\app\cameraTestApp.cpp" />
     <ClCompile Include="src\app\final\finalSceneApp.cpp" />
+    <ClCompile Include="src\app\final\map.cpp" />
+    <ClCompile Include="src\app\final\player.cpp" />
     <ClCompile Include="src\app\final\srcDef.cpp" />
     <ClCompile Include="src\app\initSceneApp.cpp" />
     <ClCompile Include="src\app\lightingTestApp.cpp" />
@@ -182,6 +184,8 @@
     <ClInclude Include="src\app\application.hpp" />
     <ClInclude Include="src\app\cameraTestApp.hpp" />
     <ClInclude Include="src\app\final\finalSceneApp.hpp" />
+    <ClInclude Include="src\app\final\map.hpp" />
+    <ClInclude Include="src\app\final\player.hpp" />
     <ClInclude Include="src\app\final\srcDef.hpp" />
     <ClInclude Include="src\app\initSceneApp.hpp" />
     <ClInclude Include="src\app\lightingTestApp.hpp" />

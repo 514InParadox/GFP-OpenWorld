@@ -47,6 +47,8 @@ public:
 private:
     GameState gameState{GameState::StartInterface};
 
+    glm::vec2 playerPosition;
+
     std::unique_ptr<Camera> _camera;
     
     std::unique_ptr<TexModel> _texModel;
