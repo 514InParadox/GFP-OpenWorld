@@ -146,6 +146,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\animation\animation.cpp" />
     <ClCompile Include="src\app\application.cpp" />
+    <ClCompile Include="src\app\audioPlayerTestApp.cpp" />
     <ClCompile Include="src\app\audioTestApp.cpp" />
     <ClCompile Include="src\app\cameraTestApp.cpp" />
     <ClCompile Include="src\app\minimalAudioTestApp.cpp" />
@@ -169,6 +170,7 @@
     <ClCompile Include="src\model\triangle.cpp" />
     <ClCompile Include="src\test\hello.cpp" />
     <ClCompile Include="src\utils\advance_camera.cpp" />
+    <ClCompile Include="src\utils\audio_player.cpp" />
     <ClCompile Include="src\utils\bvh.cpp" />
     <ClCompile Include="src\utils\camera.cpp" />
     <ClCompile Include="src\utils\collision_system.cpp" />
@@ -186,6 +188,7 @@
   <ItemGroup>
     <ClInclude Include="src\animation\animation.hpp" />
     <ClInclude Include="src\app\application.hpp" />
+    <ClInclude Include="src\app\audioPlayerTestApp.hpp" />
     <ClInclude Include="src\app\audioTestApp.hpp" />
     <ClInclude Include="src\app\cameraTestApp.hpp" />
     <ClInclude Include="src\app\minimalAudioTestApp.hpp" />
@@ -209,6 +212,7 @@
     <ClInclude Include="src\model\triangle.hpp" />
     <ClInclude Include="src\test\hello.hpp" />
     <ClInclude Include="src\utils\advance_camera.hpp" />
+    <ClInclude Include="src\utils\audio_player.hpp" />
     <ClInclude Include="src\utils\bounding_box.hpp" />
     <ClInclude Include="src\utils\bounding_sphere.hpp" />
     <ClInclude Include="src\utils\bvh.hpp" />

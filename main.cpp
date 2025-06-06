@@ -23,6 +23,7 @@
 #include "app/lightingTestApp2.hpp"
 #include "app/glowTestApp.hpp"
 #include "app/audioTestApp.hpp"
+#include "app/audioPlayerTestApp.hpp"
 #include "app/minimalAudioTestApp.hpp"
 #include "app/final/finalSceneApp.hpp"
 
@@ -67,7 +68,8 @@ int main(int argc, char *argv[]) {
         //lightingTestApp app(options);
         // lightingTestApp2 app(options);
         // GlowTestApp app(options);
-        AudioTestApp app(options);
+        // AudioTestApp app(options);
+        AudioPlayerTestApp app(options);
         // MinimalAudioTestApp app(options);
         // FinalSceneApp app(options);
         app.run();
