@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <random>
 #include "map.hpp"
+#include "srcDef.hpp"
 
 enum class EntityStatus {
     PATROL = 0,  // 巡逻状态 - 随机游走寻找玩家
@@ -14,7 +15,7 @@ public:
     EntityStatus Status; // Entity status: PATROL or CHASE
     float speed; // Movement speed
     
-    EntityLogic() : Status(EntityStatus::PATROL), speed(5.0f), _entityPos(0.0f, 0.0f), _timeSinceStatusZero(0.0f), _lastSeenPlayerPos(0.0f, 0.0f) {} // Constructor to initialize Status and speed
+    EntityLogic() : Status(EntityStatus::PATROL), speed(entityMoveSpeedFast), _entityPos(0.0f, 0.0f), _timeSinceStatusZero(0.0f), _lastSeenPlayerPos(0.0f, 0.0f) {} // Constructor to initialize Status and speed
     
     // Move entity based on player position and delta time
     // This function will automatically update Status and position based on line of sight

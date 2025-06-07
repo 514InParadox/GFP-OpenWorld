@@ -19,7 +19,9 @@ void Interface::initGLResources(const std::string &imagePath) {
 
     // 加载纹理
     int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load(imagePath.c_str(), &width, &height, &nrChannels, 0);
+    stbi_set_flip_vertically_on_load(false);
     
     if (!data) {
         throw std::runtime_error("Failed to load texture: " + imagePath);

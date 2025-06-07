@@ -52,7 +52,7 @@ class FinalSceneApp : public Application {
 public:
     FinalSceneApp(const Options &options);
 
-    ~FinalSceneApp() = default;
+    ~FinalSceneApp();
 
     void handleInput() override;
 
@@ -77,7 +77,7 @@ private:
     void setPointLightsUniforms(GLSLProgram* shader);
     void setMitaPointLightsUniforms(GLSLProgram* shader);
     
-    GameState gameState{GameState::BeforeMita}; // Start directly in game, not interface
+    GameState gameState{GameState::StartInterface}; // Start directly in game, not interface
 
     // Control mode for IJKL keys
     enum class ControlMode {
@@ -85,8 +85,6 @@ private:
         Entity
     };
     ControlMode _controlMode{ControlMode::Mita}; // Start controlling mita
-
-    glm::vec2 playerPosition;
 
     std::unique_ptr<Camera> _camera;
     
@@ -134,8 +132,7 @@ private:
     float _glowIntensity = 0.02f;
 
     // Dynamic point lights
-    std::vector<DynamicPointLight> _dynamicPointLights;
-    std::vector<DynamicPointLight> _mitaPointLights;
+    std::vector<DynamicPointLight> _dynamicPointLights;    std::vector<DynamicPointLight> _mitaPointLights;
     static const int MAX_POINT_LIGHTS = 32;
 
     EntityLogic _entityLogic;
@@ -152,7 +149,10 @@ private:
     std::chrono::time_point<std::chrono::high_resolution_clock> _lastFrameTime;
     float _deltaTime = 0.0f;
 
-    void initShader();
+    glm::vec2 playerPosition;    void initShader();
+    
+    // Ray-AABB intersection test for shooting
+    bool rayIntersectsAABB(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, const BoundingBox& aabb) const;
     
     // Update frame time calculation
     void updateFrameTime();

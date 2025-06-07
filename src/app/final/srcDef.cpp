@@ -18,6 +18,7 @@ const std::string entityPath = "resource/model/entity.obj";
 const std::string mitaPath   = "resource/model/mita.obj";
 const std::string mapPath    = "resource/model/map.obj";
 const std::string lightPath  = "resource/model/light.obj";
+const std::string gunPath    = "resource/model/gun.obj";
 
 const std::string texVertexShaderAddr   = "shader/vertex/oneTexture_diffuseLight.vert";
 const std::string texFragmentShaderAddr = "shader/fragment/oneTexture_diffuseLight.frag";
@@ -45,6 +46,9 @@ const std::string combineShaderAddr          = "shader/fragment/glow_combine.fra
 const std::string interfaceVertexShaderAddr = "shader/vertex/interface.vert";
 const std::string interfaceFragmentShaderAddr = "shader/fragment/interface.frag";
 
+const std::string gunVertexShaderAddr = "shader/vertex/gun.vert";
+const std::string gunFragmentShaderAddr = "shader/fragment/gun.frag";
+
 // Definition of const std::vector
 const std::vector<std::string> skyboxTexturePaths = {
     "resource/texture/skybox/default/right.jpg",
@@ -55,8 +59,8 @@ const std::vector<std::string> skyboxTexturePaths = {
     "resource/texture/skybox/default/back.jpg"
 };
 
-const std::string startInterfaceImageAddr = "resource/texture/startScene.png";
-const std::string loseInterfaceImageAddr  = "resource/texture/loseScene.png";
+const std::string startInterfaceImageAddr = "resource/texture/startScene.jpg";
+const std::string loseInterfaceImageAddr  = "resource/texture/loseScene.jpg";
 const std::string winInterfaceImageAddr   = "resource/texture/winScene.png";
 
 const std::string dialogAssertPath = "resource/text/";

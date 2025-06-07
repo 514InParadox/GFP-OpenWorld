@@ -10,15 +10,16 @@
 // modifiable theoratically
 
 constexpr float playerMoveSpeedSlow = 6.0f;
-constexpr float playerMoveSpeedFast = 12.0f;
+constexpr float playerMoveSpeedFast = 9.0f;
 
 constexpr float entityMoveSpeedSlow = 3.0f;
-constexpr float entityMoveSpeedFast = 11.0f;
+constexpr float entityMoveSpeedFast = 8.0f;
 
 // Non-const variables need external linkage declaration
 extern float cameraRotateSpeed;
 
-constexpr std::pair<int, int> mitaCoord = std::make_pair(286, 189);
+constexpr std::pair<int, int> mitaCoord = std::make_pair(189, 286);
+constexpr std::pair<int, int> playerCoord = std::make_pair(3, 3);
 
 constexpr float EntityTriggleDist = 1.0f;
 constexpr float MitaTriggleDist = 5.0f;
@@ -43,6 +44,7 @@ extern const std::string entityPath;
 extern const std::string mitaPath;
 extern const std::string mapPath;
 extern const std::string lightPath;
+extern const std::string gunPath;
 
 extern const std::string texVertexShaderAddr;
 extern const std::string texFragmentShaderAddr;
@@ -69,6 +71,9 @@ extern const std::string combineShaderAddr;
 
 extern const std::string interfaceVertexShaderAddr;
 extern const std::string interfaceFragmentShaderAddr;
+
+extern const std::string gunVertexShaderAddr;
+extern const std::string gunFragmentShaderAddr;
 
 extern const std::vector<std::string> skyboxTexturePaths;
 

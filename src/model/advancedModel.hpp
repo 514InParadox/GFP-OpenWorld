@@ -26,7 +26,7 @@ public:
 
     // GLuint getBoundingBoxVao() const;
 
-    // BoundingBox getBoundingBox() const;
+    BoundingBox getBoundingBox() const;
 
     // virtual void drawBoundingBox() const;
     
@@ -77,7 +77,9 @@ protected:
     // 物理组件
     std::unique_ptr<Physics> _physics = nullptr;
 
-    // void computeBoundingBox();
+    void computeBoundingBox();
+
+    BoundingBox _boundingBox;
 
     // void initGLResources();
 

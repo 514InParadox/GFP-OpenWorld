@@ -121,8 +121,7 @@ Mesh AdvancedModel::processMesh(aiMesh *mesh, const aiScene *scene) {
         aiFace face = mesh->mFaces[i];
         for(unsigned int j = 0; j < face.mNumIndices; j++)
             indices.push_back(face.mIndices[j]);
-    }
-    // 处理材质
+    }    // 处理材质
     std::cout << "material num: " << mesh->mMaterialIndex << std::endl;
     if(mesh->mMaterialIndex >= 0) {
         aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
@@ -132,6 +131,9 @@ Mesh AdvancedModel::processMesh(aiMesh *mesh, const aiScene *scene) {
         std::vector<AdvancedTexture> specularMaps = loadMaterialTextures(material, 
                                             aiTextureType_SPECULAR, "texture_specular");
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+        std::vector<AdvancedTexture> normalMaps = loadMaterialTextures(material, 
+                                            aiTextureType_NORMALS, "texture_normal");
+        textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
     }
 
     return Mesh(vertices, indices, textures);
@@ -161,26 +163,32 @@ std::vector<AdvancedTexture> AdvancedModel::loadMaterialTextures(aiMaterial *mat
 //     return _boxVao;
 // }
 
-// void AdvancedModel::computeBoundingBox() {
-//     float minX = std::numeric_limits<float>::max();
-//     float minY = std::numeric_limits<float>::max();
-//     float minZ = std::numeric_limits<float>::max();
-//     float maxX = -std::numeric_limits<float>::max();
-//     float maxY = -std::numeric_limits<float>::max();
-//     float maxZ = -std::numeric_limits<float>::max();
+BoundingBox AdvancedModel::getBoundingBox() const {
+    return _boundingBox;
+}
 
-//     for (const auto& v : _vertices) {
-//         minX = std::min(v.position.x, minX);
-//         minY = std::min(v.position.y, minY);
-//         minZ = std::min(v.position.z, minZ);
-//         maxX = std::max(v.position.x, maxX);
-//         maxY = std::max(v.position.y, maxY);
-//         maxZ = std::max(v.position.z, maxZ);
-//     }
+void AdvancedModel::computeBoundingBox() {
+    float minX = std::numeric_limits<float>::max();
+    float minY = std::numeric_limits<float>::max();
+    float minZ = std::numeric_limits<float>::max();
+    float maxX = -std::numeric_limits<float>::max();
+    float maxY = -std::numeric_limits<float>::max();
+    float maxZ = -std::numeric_limits<float>::max();
 
-//     _boundingBox.min = glm::vec3(minX, minY, minZ);
-//     _boundingBox.max = glm::vec3(maxX, maxY, maxZ);
-// }
+    for (const auto& m: _meshes) {
+        for (const auto& v : m.vertices) {
+            minX = std::min(v.position.x, minX);
+            minY = std::min(v.position.y, minY);
+            minZ = std::min(v.position.z, minZ);
+            maxX = std::max(v.position.x, maxX);
+            maxY = std::max(v.position.y, maxY);
+            maxZ = std::max(v.position.z, maxZ);
+        }
+    }
+
+    _boundingBox.min = glm::vec3(minX, minY, minZ);
+    _boundingBox.max = glm::vec3(maxX, maxY, maxZ);
+}
 
 // void AdvancedModel::initBoxGLResources() {
 //     std::vector<glm::vec3> boxVertices = {

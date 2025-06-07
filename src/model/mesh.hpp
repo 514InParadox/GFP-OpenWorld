@@ -16,7 +16,11 @@ class Mesh {
         Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<AdvancedTexture> textures);
         void draw() const;
         // void draw(GLSLProgram &shader) const;
+        
+        // Getter for VAO access
+        unsigned int getVAO() const { return VAO; }
+        
     private:
         unsigned int VAO, VBO, EBO;
         void setupMesh();
-};  
+};
