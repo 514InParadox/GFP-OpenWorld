@@ -26,6 +26,7 @@
 #include "app/audioPlayerTestApp.hpp"
 #include "app/minimalAudioTestApp.hpp"
 #include "app/final/finalSceneApp.hpp"
+#include "app/skeletalAnimationApp.hpp"
 
 Options getOptions(int argc, char* argv[]) {
     Options options;
@@ -72,6 +73,7 @@ int main(int argc, char *argv[]) {
         // AudioPlayerTestApp app(options);
         // MinimalAudioTestApp app(options);
         FinalSceneApp app(options);
+        // SkeletalAnimationApp app(options);
         app.run();
     } catch (std::runtime_error& e) {
         std::cerr << e.what() << std::endl;
