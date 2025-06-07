@@ -103,14 +103,11 @@ void FinalSceneApp::handleInput() {
     }
 
     // Toggle control mode with P key
-    // NOTE: Commented out for final release
-    /*
     if (_input.keyboard.keyStates[GLFW_KEY_P] == GLFW_PRESS) {
         _controlMode = (_controlMode == ControlMode::Mita) ? ControlMode::Entity : ControlMode::Mita;
         std::cout << "Control mode switched to: " << 
                      ((_controlMode == ControlMode::Mita) ? "Mita" : "Entity") << std::endl;
-    }
-    */    
+    }    
 
     // player movement
     glm::vec3 deltaPosition = glm::vec3(0.0f);
@@ -469,8 +466,6 @@ void FinalSceneApp::renderSceneToFramebuffer() {
     // _mita->transform.position = glm::vec3(mapLattice.first * 300.0f - 150.0f + mitaCoord.first, 0.0f, mapLattice.second * 300.0f - 150.0f + mitaCoord.second);
 
     // Manual control with IJKL keys (switchable between mita and entity)
-    // NOTE: Commented out for final release - entities should be positioned according to game logic
-    /*
     static glm::vec3 mitaPosition(-144.0f, 0.0f, -144.0f); // Initial mita position
     static glm::vec3 entityPosition(-126.0f, 1.0f, -121.0f); // Initial entity position
     float moveSpeed = 3.0f; // Units per second
@@ -495,16 +490,8 @@ void FinalSceneApp::renderSceneToFramebuffer() {
     _entity->transform.position = entityPosition;
     _entity->transform.scale = glm::vec3(0.3f);
     _mita->transform.position = mitaPosition;
-    */
-
-    // Set entity and mita positions according to game logic
-    _entity->transform.position = glm::vec3(-126.0f, 1.0f, -121.0f);
-    _entity->transform.scale = glm::vec3(0.3f);
-    _mita->transform.position = glm::vec3(-144.0f, 0.0f, -144.0f);
 
     // Debug output for mita and entity positions and game state
-    // NOTE: Commented out for final release
-    /*
     static float debugTimer = 0.0f;
     debugTimer += _deltaTime;
     if (debugTimer >= 2.0f) { // Output debug info every 2 seconds
@@ -532,7 +519,6 @@ void FinalSceneApp::renderSceneToFramebuffer() {
         
         debugTimer = 0.0f;
     }
-    */
 
     _mapShader->use();
     _mapShader->setUniformMat4("projection", projection);
@@ -604,15 +590,12 @@ void FinalSceneApp::renderSceneToFramebuffer() {
         setPointLightsUniforms(_entityShader.get());
         
         // Debug: Output number of lights being used
-        // NOTE: Commented out for final release
-        /*
         static float lightCountTimer = 0.0f;
         lightCountTimer += _deltaTime;
         if (lightCountTimer >= 2.0f) {
             std::cout << "Setting " << _dynamicPointLights.size() << " point lights to entity shader" << std::endl;
             lightCountTimer = 0.0f;
         }
-        */
         
         _entity->draw();
     }
@@ -646,15 +629,12 @@ void FinalSceneApp::renderSceneToFramebuffer() {
         _mitaShader->setUniformInt("diffuseTexture", 0);
         
         // Debug: Output number of lights being used for mita
-        // NOTE: Commented out for final release
-        /*
         static float mitaLightCountTimer = 0.0f;
         mitaLightCountTimer += _deltaTime;
         if (mitaLightCountTimer >= 2.0f) {
             std::cout << "Setting " << _mitaPointLights.size() << " point lights to mita shader" << std::endl;
             mitaLightCountTimer = 0.0f;
         }
-        */
         
         _mita->draw();
     }
@@ -782,8 +762,6 @@ void FinalSceneApp::updateDynamicPointLights() {
     const int searchRadius = 5; // 11x11 area
     
     // Debug output for light detection
-    // NOTE: Commented out for final release
-    /*
     static float lightDebugTimer = 0.0f;
     lightDebugTimer += _deltaTime;
     bool shouldDebug = lightDebugTimer >= 3.0f; // Debug every 3 seconds
@@ -795,8 +773,6 @@ void FinalSceneApp::updateDynamicPointLights() {
         std::cout << "Entity map position: (" << centerMapX << ", " << centerMapZ << ")" << std::endl;
         lightDebugTimer = 0.0f;
     }
-    */
-    bool shouldDebug = false; // Disable debug output for final release
     
     // Scan the area around the player
     for (int dx = -searchRadius; dx <= searchRadius; dx++) {
@@ -817,22 +793,16 @@ void FinalSceneApp::updateDynamicPointLights() {
                     glm::vec3 lightPos(worldX, worldY, worldZ);
                     _dynamicPointLights.emplace_back(lightPos, glm::vec3(1.0f, 1.0f, 0.9f), 2.0f);
                     
-                    // NOTE: Debug output commented out for final release
-                    /*
                     if (shouldDebug) {
                         std::cout << "Found light at map(" << mapX << ", " << mapZ << ") -> world(" 
                                   << worldX << ", " << worldY << ", " << worldZ << ")" << std::endl;
                     }
-                    */
                     
                     // Limit number of lights to prevent performance issues
                     if (_dynamicPointLights.size() >= MAX_POINT_LIGHTS) {
-                        // NOTE: Debug output commented out for final release
-                        /*
                         if (shouldDebug) {
                             std::cout << "Reached maximum point lights limit: " << MAX_POINT_LIGHTS << std::endl;
                         }
-                        */
                         return;
                     }
                 }
@@ -840,12 +810,9 @@ void FinalSceneApp::updateDynamicPointLights() {
         }
     }
     
-    // NOTE: Debug output commented out for final release
-    /*
     if (shouldDebug) {
         std::cout << "Total dynamic point lights: " << _dynamicPointLights.size() << std::endl;
     }
-    */
 }
 
 void FinalSceneApp::updateMitaPointLights() {
@@ -865,8 +832,6 @@ void FinalSceneApp::updateMitaPointLights() {
     const int searchRadius = 5; // 11x11 area
     
     // Debug output for light detection
-    // NOTE: Commented out for final release
-    /*
     static float lightDebugTimer = 0.0f;
     lightDebugTimer += _deltaTime;
     bool shouldDebug = lightDebugTimer >= 3.0f; // Debug every 3 seconds
@@ -878,8 +843,6 @@ void FinalSceneApp::updateMitaPointLights() {
         std::cout << "Mita map position: (" << centerMapX << ", " << centerMapZ << ")" << std::endl;
         lightDebugTimer = 0.0f;
     }
-    */
-    bool shouldDebug = false; // Disable debug output for final release
     
     // Scan the area around the mita
     for (int dx = -searchRadius; dx <= searchRadius; dx++) {
@@ -900,22 +863,16 @@ void FinalSceneApp::updateMitaPointLights() {
                     glm::vec3 lightPos(worldX, worldY, worldZ);
                     _mitaPointLights.emplace_back(lightPos, glm::vec3(1.0f, 1.0f, 0.9f), 2.0f);
                     
-                    // NOTE: Debug output commented out for final release
-                    /*
                     if (shouldDebug) {
                         std::cout << "Found light at map(" << mapX << ", " << mapZ << ") -> world(" 
                                   << worldX << ", " << worldY << ", " << worldZ << ")" << std::endl;
                     }
-                    */
                     
                     // Limit number of lights to prevent performance issues
                     if (_mitaPointLights.size() >= MAX_POINT_LIGHTS) {
-                        // NOTE: Debug output commented out for final release
-                        /*
                         if (shouldDebug) {
                             std::cout << "Reached maximum point lights limit for mita: " << MAX_POINT_LIGHTS << std::endl;
                         }
-                        */
                         return;
                     }
                 }
@@ -923,12 +880,9 @@ void FinalSceneApp::updateMitaPointLights() {
         }
     }
     
-    // NOTE: Debug output commented out for final release
-    /*
     if (shouldDebug) {
         std::cout << "Total mita point lights: " << _mitaPointLights.size() << std::endl;
     }
-    */
 }
 
 void FinalSceneApp::setPointLightsUniforms(GLSLProgram* shader) {
