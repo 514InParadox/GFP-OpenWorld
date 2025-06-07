@@ -17,6 +17,7 @@ float cameraRotateSpeed = 0.002f;
 const std::string entityPath = "resource/model/entity.obj";
 const std::string mitaPath   = "resource/model/mita.obj";
 const std::string mapPath    = "resource/model/map.obj";
+const std::string lightPath  = "resource/model/light.obj";
 
 const std::string texVertexShaderAddr   = "shader/vertex/oneTexture_diffuseLight.vert";
 const std::string texFragmentShaderAddr = "shader/fragment/oneTexture_diffuseLight.frag";
@@ -29,6 +30,17 @@ const std::string entityFragmentShaderAddr = "shader/fragment/entity.frag";
 
 const std::string mapVertexShaderAddr   = "shader/vertex/map.vert";
 const std::string mapFragmentShaderAddr = "shader/fragment/map.frag";
+
+const std::string mitaVertexShaderAddr   = "shader/vertex/entity.vert";
+const std::string mitaFragmentShaderAddr = "shader/fragment/entity.frag";
+
+const std::string emissiveVertexShaderAddr   = "shader/vertex/emissive.vert";
+const std::string emissiveFragmentShaderAddr = "shader/fragment/emissive.frag";
+
+const std::string screenQuadVertexShaderAddr = "shader/vertex/screen_quad.vert";
+const std::string extractBrightShaderAddr    = "shader/fragment/extract_bright.frag";
+const std::string blurShaderAddr             = "shader/fragment/gaussian_blur.frag";
+const std::string combineShaderAddr          = "shader/fragment/glow_combine.frag";
 
 const std::string interfaceVertexShaderAddr = "shader/vertex/interface.vert";
 const std::string interfaceFragmentShaderAddr = "shader/fragment/interface.frag";
@@ -46,3 +58,5 @@ const std::vector<std::string> skyboxTexturePaths = {
 const std::string startInterfaceImageAddr = "resource/texture/startScene.png";
 const std::string loseInterfaceImageAddr  = "resource/texture/loseScene.png";
 const std::string winInterfaceImageAddr   = "resource/texture/winScene.png";
+
+const std::string dialogAssertPath = "resource/text/";

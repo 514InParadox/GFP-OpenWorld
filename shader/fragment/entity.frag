@@ -49,9 +49,12 @@ struct SpotLight {
 };
 
 // --- Uniforms ---
+#define MAX_POINT_LIGHTS 32
+
 uniform Material material;
 uniform AmbientLight ambientLight;
-uniform PointLight pointLights;
+uniform PointLight pointLights[MAX_POINT_LIGHTS];
+uniform int numPointLights;
 uniform DirectionalLight dirLights;
 uniform SpotLight spotLights;
 
@@ -75,10 +78,9 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 worldPos, vec3 viewDir) 
     float spec = pow(max(dot(normalize(normal), halfwayDir), 0.0), material.shininess);
     vec3 specular = light.color * spec * material.specular;
     
-    // Attenuation (simplified - no distance falloff for now)
-    float attenuation = 1.0;
-    // float distance = length(light.position - worldPos);
-    // float attenuation = 1.0 / (light.kc + light.kl * distance + light.kq * (distance * distance));
+    // Enhanced distance-based attenuation for better light falloff
+    float distance = length(light.position - worldPos);
+    float attenuation = 1.0 / (1.0 + 0.35 * distance + 0.44 * distance * distance);
     
     return light.intensity * attenuation * (diffuse + specular);
 }
@@ -142,8 +144,10 @@ void main() {
     // Start with ambient lighting
     vec3 result = material.ambient * baseColor * ambientLight.color * ambientLight.intensity;
     
-    // Add point light contribution
-    result += CalcPointLight(pointLights, norm, worldPosition, viewDir);
+    // Add all point lights contribution
+    for (int i = 0; i < numPointLights && i < MAX_POINT_LIGHTS; i++) {
+        result += CalcPointLight(pointLights[i], norm, worldPosition, viewDir);
+    }
     
     // Add directional light contribution  
     result += CalcDirectionalLight(dirLights, norm, worldPosition, viewDir);

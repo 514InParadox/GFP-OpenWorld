@@ -1,6 +1,7 @@
 #pragma once
 
 #include "model/advancedModel.hpp"
+#include "utils/glsl_program.hpp"
 
 class Text {
 public:
@@ -12,7 +13,8 @@ public:
     bool Life(const float &deltaTime);
 
     // draw the model, using text shader
-    void draw();
+    // void draw();
+    void draw(GLSLProgram &shader);
 private:
     std::unique_ptr<AdvancedModel> _text;
     float _remainingLifeTime;

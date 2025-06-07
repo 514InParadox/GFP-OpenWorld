@@ -34,6 +34,9 @@ FinalSceneApp::FinalSceneApp(const Options &options) : Application(options) {
     _entity.reset(new AdvancedModel(getAssetFullPath(entityPath)));
     _mita.reset(new AdvancedModel(getAssetFullPath(mitaPath)));
     _mita->transform.scale = glm::vec3(0.5f);
+    // 初始化实体位置和速度
+    _entityLogic.setEntityPos(glm::vec2(-145.0f, -145.0f));
+    _entityLogic.speed = entityMoveSpeedSlow;
 
     // init map
     _map.reset(new AdvancedModel(getAssetFullPath(mapPath)));
@@ -133,10 +136,11 @@ void FinalSceneApp::handleInput() {
     playerPosition = getCorrectPos(playerPosition, glm::vec2(deltaPosition.x, deltaPosition.z));
     _camera->transform.position = getCameraPos(playerPosition, glm::vec2(deltaPosition.x, deltaPosition.z), _deltaTime);
 
-    // std::cout << _camera->transform.position.y << std::endl;
+    // 更新实体位置
+    _entityLogic.move(playerPosition, _deltaTime);
+    _entity->transform.position = glm::vec3(_entityLogic.getEntityPos().x, 0.5f, _entityLogic.getEntityPos().y);
 
     // _camera->transform.position += dbg3D_deltaPosition;
-    // playerPosition = glm::vec2(_camera->transform.position.x, _camera->transform.position.z);
 
     // view movement
     if (_input.mouse.move.xNow != _input.mouse.move.xOld) {
@@ -207,7 +211,8 @@ void FinalSceneApp::renderFrame() {
         (int)floor((playerPosition.y + 150) / 300.0f)
     );
 
-    _entity->transform.position = glm::vec3(-145, 0.5f, -145);
+    //_entity->transform.position = glm::vec3(-145, 0.5f, -145);
+    _entity->transform.position = glm::vec3(_entityLogic.getEntityPos().x, 0.5f, _entityLogic.getEntityPos().y);
     _entity->transform.scale = glm::vec3(0.3f);
 
     _mita->transform.position = glm::vec3(mapLattice.first * 300.0f - 150.0f + mitaCoord.first, 0.0f, mapLattice.second * 300.0f - 150.0f + mitaCoord.second);
@@ -216,6 +221,9 @@ void FinalSceneApp::renderFrame() {
 
     _mapShader->setUniformMat4("projection", projection);
     _mapShader->setUniformMat4("view", view);
+    // _mapShader->setUniformMat4("model", _map->transform.getLocalMatrix());
+
+    // _map->draw();
 
     if (gameState != GameState::AfterEntity) {
         for (int d = 0; d <= 4; ++d) {

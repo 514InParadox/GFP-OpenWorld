@@ -42,6 +42,7 @@ constexpr int dy[] = {0, 0, 0, 1, -1};
 extern const std::string entityPath;
 extern const std::string mitaPath;
 extern const std::string mapPath;
+extern const std::string lightPath;
 
 extern const std::string texVertexShaderAddr;
 extern const std::string texFragmentShaderAddr;
@@ -55,6 +56,17 @@ extern const std::string entityFragmentShaderAddr;
 extern const std::string mapVertexShaderAddr;
 extern const std::string mapFragmentShaderAddr;
 
+extern const std::string mitaVertexShaderAddr;
+extern const std::string mitaFragmentShaderAddr;
+
+extern const std::string emissiveVertexShaderAddr;
+extern const std::string emissiveFragmentShaderAddr;
+
+extern const std::string screenQuadVertexShaderAddr;
+extern const std::string extractBrightShaderAddr;
+extern const std::string blurShaderAddr;
+extern const std::string combineShaderAddr;
+
 extern const std::string interfaceVertexShaderAddr;
 extern const std::string interfaceFragmentShaderAddr;
 
@@ -63,3 +75,5 @@ extern const std::vector<std::string> skyboxTexturePaths;
 extern const std::string startInterfaceImageAddr;
 extern const std::string loseInterfaceImageAddr;
 extern const std::string winInterfaceImageAddr;
+
+extern const std::string dialogAssertPath;
