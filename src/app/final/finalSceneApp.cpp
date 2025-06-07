@@ -221,7 +221,7 @@ void FinalSceneApp::renderFrame() {
         for (int d = 0; d <= 4; ++d) {
             int tx = dx[d] + mapLattice.first,
             ty = dy[d] + mapLattice.second;
-            glm::mat4 mapPos = glm::translate(glm::mat4(1.0f), glm::vec3(tx * 300.0f - 150, 3.0f, ty * 300.0f - 150));
+            glm::mat4 mapPos = glm::translate(glm::mat4(1.0f), glm::vec3(tx * 300.0f - 150, 0.0f, ty * 300.0f - 150));
             _mapShader->setUniformMat4("model", mapPos);
             _map->draw();
         }
@@ -229,7 +229,7 @@ void FinalSceneApp::renderFrame() {
         for (int d = 0; d <= 0; ++d) {
             int tx = dx[d] + mapLattice.first,
             ty = dy[d] + mapLattice.second;
-            glm::mat4 mapPos = glm::translate(glm::mat4(1.0f), glm::vec3(tx * 300.0f - 150, 3.0f, ty * 300.0f - 150));
+            glm::mat4 mapPos = glm::translate(glm::mat4(1.0f), glm::vec3(tx * 300.0f - 150, 0.0f, ty * 300.0f - 150));
             _mapShader->setUniformMat4("model", mapPos);
             _map->draw();
         }
