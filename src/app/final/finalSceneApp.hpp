@@ -51,7 +51,7 @@ public:
     
     void updateState();
 private:
-    GameState gameState{GameState::StartInterface};
+    GameState gameState{GameState::BeforeMita};
 
     glm::vec2 playerPosition;
 

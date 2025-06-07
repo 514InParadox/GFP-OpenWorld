@@ -55,6 +55,9 @@ extern const std::string entityFragmentShaderAddr;
 extern const std::string mapVertexShaderAddr;
 extern const std::string mapFragmentShaderAddr;
 
+extern const std::string interfaceVertexShaderAddr;
+extern const std::string interfaceFragmentShaderAddr;
+
 extern const std::vector<std::string> skyboxTexturePaths;
 
 extern const std::string startInterfaceImageAddr;

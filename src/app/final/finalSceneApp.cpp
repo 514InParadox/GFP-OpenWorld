@@ -275,6 +275,11 @@ void FinalSceneApp::initShader() {
     _mitaShader->attachVertexShaderFromFile(getAssetFullPath(texVertexShaderAddr));
     _mitaShader->attachFragmentShaderFromFile(getAssetFullPath(texFragmentShaderAddr));
     _mitaShader->link();
+
+    _interfaceShader.reset(new GLSLProgram);
+    _interfaceShader->attachVertexShaderFromFile(getAssetFullPath(interfaceVertexShaderAddr));
+    _interfaceShader->attachFragmentShaderFromFile(getAssetFullPath(interfaceFragmentShaderAddr));
+    _interfaceShader->link();
 }
 
 void FinalSceneApp::updateFrameTime() {

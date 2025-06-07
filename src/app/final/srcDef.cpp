@@ -30,6 +30,9 @@ const std::string entityFragmentShaderAddr = "shader/fragment/entity.frag";
 const std::string mapVertexShaderAddr   = "shader/vertex/map.vert";
 const std::string mapFragmentShaderAddr = "shader/fragment/map.frag";
 
+const std::string interfaceVertexShaderAddr = "shader/vertex/interface.vert";
+const std::string interfaceFragmentShaderAddr = "shader/fragment/interface.frag";
+
 // Definition of const std::vector
 const std::vector<std::string> skyboxTexturePaths = {
     "resource/texture/skybox/default/right.jpg",
@@ -40,6 +43,6 @@ const std::vector<std::string> skyboxTexturePaths = {
     "resource/texture/skybox/default/back.jpg"
 };
 
-extern const std::string startInterfaceImageAddr = "resouece/texture/startScene";
-extern const std::string loseInterfaceImageAddr  = "resouece/texture/loseScene";
-extern const std::string winInterfaceImageAddr   = "resouece/texture/winScene";
+const std::string startInterfaceImageAddr = "resource/texture/startScene.png";
+const std::string loseInterfaceImageAddr  = "resource/texture/loseScene.png";
+const std::string winInterfaceImageAddr   = "resource/texture/winScene.png";

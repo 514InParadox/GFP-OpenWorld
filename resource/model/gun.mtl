@@ -9,5 +9,5 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd E:/Academy/course/Y2S2/Graphic/finalProj/GFP-OpenWorld/resource/texture/MP-5_baseColor.png
-map_Bump -bm 1.000000 E:/Academy/course/Y2S2/Graphic/finalProj/GFP-OpenWorld/resource/texture/MP-5_normal.png
+map_Kd resource/texture/MP-5_baseColor.png
+map_Bump -bm 1.000000 resource/texture/MP-5_normal.png

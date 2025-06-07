@@ -69,9 +69,9 @@ int main(int argc, char *argv[]) {
         // lightingTestApp2 app(options);
         // GlowTestApp app(options);
         // AudioTestApp app(options);
-        AudioPlayerTestApp app(options);
+        // AudioPlayerTestApp app(options);
         // MinimalAudioTestApp app(options);
-        // FinalSceneApp app(options);
+        FinalSceneApp app(options);
         app.run();
     } catch (std::runtime_error& e) {
         std::cerr << e.what() << std::endl;
