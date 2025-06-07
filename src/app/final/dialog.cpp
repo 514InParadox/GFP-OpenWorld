@@ -169,7 +169,7 @@ void Dialog::drawDialogBox(GLSLProgram &shader) const {
 }
 
 //void Dialog::drawDropText() const {
-void Diglog::drawDropText(GLSLProgram &shader) const{
+void Dialog::drawDropText(GLSLProgram &shader) const{
     // 绘制正在淡出的文本
     for (const auto& text : dropText) {
         if (text) {

@@ -52,7 +52,7 @@ class FinalSceneApp : public Application {
 public:
     FinalSceneApp(const Options &options);
 
-    ~FinalSceneApp();
+    ~FinalSceneApp() = default;
 
     void handleInput() override;
 

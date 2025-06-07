@@ -18,7 +18,7 @@ bool Text::Life(const float &deltaTime) {
 //        _text->draw();
 //    }
 //}
-void Test::draw(GLSLProgram &shader) {
+void Text::draw(GLSLProgram &shader) {
     if(_text) {
         shader.setUniformMat4("model", _text->transform.getLocalMatrix());
         _text->draw();
