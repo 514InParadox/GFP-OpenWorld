@@ -63,3 +63,5 @@ extern const std::vector<std::string> skyboxTexturePaths;
 extern const std::string startInterfaceImageAddr;
 extern const std::string loseInterfaceImageAddr;
 extern const std::string winInterfaceImageAddr;
+
+extern const std::string dialogAssertPath;

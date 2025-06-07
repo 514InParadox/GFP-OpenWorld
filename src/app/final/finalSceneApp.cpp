@@ -53,6 +53,9 @@ FinalSceneApp::FinalSceneApp(const Options &options) : Application(options) {
     startInterface.reset(new Interface(getAssetFullPath(startInterfaceImageAddr)));
     loseInterface.reset(new Interface(getAssetFullPath(loseInterfaceImageAddr)));
     winInterface.reset(new Interface(getAssetFullPath(winInterfaceImageAddr)));
+
+    // Initialize dialog system
+    _dialog.reset(new Dialog(getAssetFullPath(dialogAssertPath)));
 }
 
 // camera 在平面上移动
@@ -253,6 +256,13 @@ void FinalSceneApp::renderFrame() {
         _mitaShader->setUniformInt("mapKd", 0);
         _mita->draw();
     }
+
+    // draw dialog texts
+    _texShader->use();
+    _texShader->setUniformMat4("projection", projection);
+    _texShader->setUniformMat4("view", view);
+    _texShader->setUniformInt("mapKd", 0);
+    _dialog->draw(_deltaTime, *_texShader);
 }
 
 void FinalSceneApp::initShader() {
@@ -305,11 +315,13 @@ void FinalSceneApp::updateState() {
             if (distance(mitaPos, playerPosition) < MitaTriggleDist) {
                 gameState = GameState::DuringMita;
                 // _dialog.Start();
+                _dialog->start();
             }
             break;
         case GameState::DuringMita:
             // if (_dialog.IsFinish()) {
-            if (false) {
+            //if (false) {
+            if(_dialog->IsFinished()){
                 gameState = GameState::AfterMita;
             }
             break;

@@ -12,9 +12,15 @@ bool Text::Life(const float &deltaTime) {
     return _remainingLifeTime > 0.0f;
 }
 
-void Text::draw() {
+//void Text::draw() {
     // 绘制文本模型
-    if (_text) {
+//    if (_text) {
+//        _text->draw();
+//    }
+//}
+void Test::draw(GLSLProgram &shader) {
+    if(_text) {
+        shader.setUniformMat4("model", _text->transform.getLocalMatrix());
         _text->draw();
     }
 }

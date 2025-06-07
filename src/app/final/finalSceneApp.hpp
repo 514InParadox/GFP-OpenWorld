@@ -76,6 +76,7 @@ private:
 
     EntityLogic _entityLogic;
     // Dialog _dialog;
+    std::unique_ptr<Dialog> _dialog;
 
     std::pair<int, int> _mapFinalLattice;
 

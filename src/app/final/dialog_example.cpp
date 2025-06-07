@@ -15,13 +15,15 @@ void dialogExample() {
     
     // Create dialog system with text files in "resource/dialog/" directory
     // Expects files like: resource/dialog/0-0.obj, resource/dialog/0-1.obj, resource/dialog/1-0.obj, etc.
-    Dialog dialogSystem("resource/dialog/", config);
+    //Dialog dialogSystem("resource/dialog/", config);
+    Dialog dialogSystem("resource/text/", config);
     
     std::cout << "Dialog system created with " << dialogSystem.getTotalDialogCount() << " dialog groups" << std::endl;
     
     // Simulate game loop
     auto lastTime = std::chrono::high_resolution_clock::now();
     
+    GLSLProgram dummy;
     while (!dialogSystem.isFinished()) {
         auto currentTime = std::chrono::high_resolution_clock::now();
         float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
@@ -36,10 +38,11 @@ void dialogExample() {
                   << " Progress: " << (dialogSystem.getCurrentDialogProgress() * 100) << "%" << std::endl;
         
         // Draw current dialog texts
-        dialogSystem.drawDialogBox();
+        //dialogSystem.drawDialogBox();
         
         // Draw fading out texts
-        dialogSystem.drawDropText();
+        //dialogSystem.drawDropText();
+        dialogSystem.draw(deltaTime, dummy);
         
         // Simulate frame rate (60 FPS)
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
@@ -53,12 +56,14 @@ void manualDialogExample() {
     DialogConfig config;
     config.autoAdvance = false;  // Manual control
     
-    Dialog dialogSystem("resource/dialog/", config);
+    //Dialog dialogSystem("resource/dialog/", config);
+    Dialog dialogSystem("resource/text/", config);
     
     std::cout << "Manual dialog example - press Enter to advance dialogs" << std::endl;
     
     auto lastTime = std::chrono::high_resolution_clock::now();
     
+    GLSLProgram dummy;
     while (!dialogSystem.isFinished()) {
         auto currentTime = std::chrono::high_resolution_clock::now();
         float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
@@ -68,8 +73,9 @@ void manualDialogExample() {
         dialogSystem.proceed(deltaTime);
         
         // Draw dialogs
-        dialogSystem.drawDialogBox();
-        dialogSystem.drawDropText();
+        //dialogSystem.drawDialogBox();
+        //dialogSystem.drawDropText();
+        dialogSystem.draw(deltaTime, dummy);
         
         // Check for user input (simplified - in real game use proper input system)
         if (std::cin.get()) {
@@ -82,11 +88,14 @@ void manualDialogExample() {
 
 // Example showing pause/resume functionality
 void pauseResumeExample() {
-    Dialog dialogSystem("resource/dialog/");
+    //Dialog dialogSystem("resource/dialog/");
+    Dialog dialogSystem("resource/text/");
     
     auto lastTime = std::chrono::high_resolution_clock::now();
     bool paused = false;
     int frameCount = 0;
+
+    GLSLProgram dummy;
     
     while (!dialogSystem.isFinished()) {
         auto currentTime = std::chrono::high_resolution_clock::now();
@@ -105,9 +114,10 @@ void pauseResumeExample() {
             }
         }
         
-        dialogSystem.proceed(deltaTime);
-        dialogSystem.drawDialogBox();
-        dialogSystem.drawDropText();
+        //dialogSystem.proceed(deltaTime);
+        //dialogSystem.drawDialogBox();
+        //dialogSystem.drawDropText();
+        dialogSystem.draw(deltaTime, dummy);
         
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
