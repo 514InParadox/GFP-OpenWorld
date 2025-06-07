@@ -181,7 +181,7 @@ void GLSLProgram::setUniformBool(const std::string& name, bool value) const {
 void GLSLProgram::setUniformInt(const std::string& name, int value) const {
     GLint location = glGetUniformLocation(_handle, name.c_str());
     if (location == -1) {
-        std::cerr << "find uniform " + name + " location failure" << std::endl;
+        std::cerr << "find  uniform " + name + " location failure" << std::endl;
     }
 
     glUniform1i(location, value);

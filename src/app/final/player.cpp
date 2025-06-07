@@ -5,7 +5,13 @@
 
 // 撞墙修正
 glm::vec2 getCorrectPos(glm::vec2 playerPos, glm::vec2 deltaPos) {
+    if (deltaPos.x == 0 && deltaPos.y == 0)     
+        return playerPos;
+
     glm::vec2 normalDelta = glm::normalize(deltaPos);
+
+    // std::cout << deltaPos.x << " " << deltaPos.y << std::endl;
+    // std::cout << normalDelta.x << " " << normalDelta.y << std::endl;
 
     normalDelta *= 0.5;
 
@@ -34,6 +40,10 @@ glm::vec2 getCorrectPos(glm::vec2 playerPos, glm::vec2 deltaPos) {
     glm::vec2 finalPos = playerPos + deltaPos;
     std::pair<int, int> finalDot = std::make_pair((int)floor(finalPos.x), (int)floor(finalPos.y));
     std::pair<int, int> finalLattice = std::make_pair(((finalDot.first + 150) % 300 + 300) % 300, ((finalDot.second + 150) % 300 + 300) % 300);
+
+    // std::cout << "now: " << nowLattice.first << ", " << nowLattice.second << std::endl;
+    // std::cout << "normal: " << normalFinalLattice.first << ", " << normalFinalLattice.second << std::endl;
+    // std::cout << "final: " << finalLattice.first << ", " << finalLattice.second << std::endl;
 
     // std::cout << "final: (" << finalLattice.first << ", " << finalLattice.second << ")" << std::endl;
 

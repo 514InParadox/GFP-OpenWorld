@@ -133,7 +133,10 @@ void FinalSceneApp::handleInput() {
     playerPosition = getCorrectPos(playerPosition, glm::vec2(deltaPosition.x, deltaPosition.z));
     _camera->transform.position = getCameraPos(playerPosition, glm::vec2(deltaPosition.x, deltaPosition.z), _deltaTime);
 
+    // std::cout << _camera->transform.position.y << std::endl;
+
     // _camera->transform.position += dbg3D_deltaPosition;
+    // playerPosition = glm::vec2(_camera->transform.position.x, _camera->transform.position.z);
 
     // view movement
     if (_input.mouse.move.xNow != _input.mouse.move.xOld) {
@@ -213,15 +216,12 @@ void FinalSceneApp::renderFrame() {
 
     _mapShader->setUniformMat4("projection", projection);
     _mapShader->setUniformMat4("view", view);
-    // _mapShader->setUniformMat4("model", _map->transform.getLocalMatrix());
-
-    // _map->draw();
 
     if (gameState != GameState::AfterEntity) {
         for (int d = 0; d <= 4; ++d) {
             int tx = dx[d] + mapLattice.first,
             ty = dy[d] + mapLattice.second;
-            glm::mat4 mapPos = glm::translate(glm::mat4(1.0f), glm::vec3(tx * 300.0f - 150, 3.0f, ty * 300.0f - 150));
+            glm::mat4 mapPos = glm::translate(glm::mat4(1.0f), glm::vec3(tx * 300.0f - 150, 0.0f, ty * 300.0f - 150));
             _mapShader->setUniformMat4("model", mapPos);
             _map->draw();
         }
