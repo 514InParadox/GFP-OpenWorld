@@ -72,24 +72,25 @@ void Animator::CalculateBoneTransform(const AssimpNodeData* node, glm::mat4 pare
         // std::cout << "Stored Matrix in array:" << std::endl;
         // for (int i = 0; i < 4; i++) {
         //     std::cout << "[" << m_FinalBoneMatrices[index][i][0] << ", " << m_FinalBoneMatrices[index][i][1] << ", " << m_FinalBoneMatrices[index][i][2] << ", " << m_FinalBoneMatrices[index][i][3] << "]" << std::endl;
-        // }
-          // Debug final matrix for first few bones
+        // }        // Debug final matrix for first few bones
+        /*
         if (index < 5) {
-            std::cout << "=== Bone Debug [" << nodeName << "] (ID: " << index << ") ===" << std::endl;
-            std::cout << "Global Transformation:" << std::endl;
-            for (int i = 0; i < 4; i++) {
-                std::cout << "[" << globalTransformation[i][0] << ", " << globalTransformation[i][1] << ", " << globalTransformation[i][2] << ", " << globalTransformation[i][3] << "]" << std::endl;
-            }
-            std::cout << "Offset Matrix (Inverse Bind Pose):" << std::endl;
-            for (int i = 0; i < 4; i++) {
-                std::cout << "[" << offset[i][0] << ", " << offset[i][1] << ", " << offset[i][2] << ", " << offset[i][3] << "]" << std::endl;
-            }
-            std::cout << "Final Bone Matrix:" << std::endl;
-            for (int i = 0; i < 4; i++) {
-                std::cout << "[" << m_FinalBoneMatrices[index][i][0] << ", " << m_FinalBoneMatrices[index][i][1] << ", " << m_FinalBoneMatrices[index][i][2] << ", " << m_FinalBoneMatrices[index][i][3] << "]" << std::endl;
-            }
-            std::cout << "==========================================" << std::endl;
+            // std::cout << "=== Bone Debug [" << nodeName << "] (ID: " << index << ") ===" << std::endl;
+            // std::cout << "Global Transformation:" << std::endl;
+            // for (int i = 0; i < 4; i++) {
+            //     std::cout << "[" << globalTransformation[i][0] << ", " << globalTransformation[i][1] << ", " << globalTransformation[i][2] << ", " << globalTransformation[i][3] << "]" << std::endl;
+            // }
+            // std::cout << "Offset Matrix (Inverse Bind Pose):" << std::endl;
+            // for (int i = 0; i < 4; i++) {
+            //     std::cout << "[" << offset[i][0] << ", " << offset[i][1] << ", " << offset[i][2] << ", " << offset[i][3] << "]" << std::endl;
+            // }
+            // std::cout << "Final Bone Matrix:" << std::endl;
+            // for (int i = 0; i < 4; i++) {
+            //     std::cout << "[" << m_FinalBoneMatrices[index][i][0] << ", " << m_FinalBoneMatrices[index][i][1] << ", " << m_FinalBoneMatrices[index][i][2] << ", " << m_FinalBoneMatrices[index][i][3] << "]" << std::endl;
+            // }
+            // std::cout << "==========================================" << std::endl;
         }
+        */
     }
 
     for (int i = 0; i < node->childrenCount; i++)

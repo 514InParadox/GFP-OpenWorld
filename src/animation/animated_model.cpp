@@ -19,16 +19,14 @@ void AnimatedModel::loadModel(const std::string& path) {    Assimp::Importer imp
     // Remove aiProcess_FlipUVs to match Blender's UV coordinates
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | 
                                                    aiProcess_CalcTangentSpace | aiProcess_JoinIdenticalVertices |
-                                                   aiProcess_ValidateDataStructure);
-
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        std::cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
+                                                   aiProcess_ValidateDataStructure);    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+        // std::cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
         return;
     }
 
     directory = path.substr(0, path.find_last_of('/'));
-    std::cout << "Loading model from: " << path << std::endl;
-    std::cout << "Directory: " << directory << std::endl;
+    // std::cout << "Loading model from: " << path << std::endl;
+    // std::cout << "Directory: " << directory << std::endl;
 
     processNode(scene->mRootNode, scene);
 }
@@ -75,14 +73,13 @@ std::unique_ptr<AnimatedMesh> AnimatedModel::processMesh(aiMesh* mesh, const aiS
             vec.x = mesh->mTextureCoords[0][i].x;
             vec.y = mesh->mTextureCoords[0][i].y;
             vertex.TexCoords = vec;
-            
-            // Debug: Print UV coordinates for first few vertices
-            if (i < 5) {
-                std::cout << "Vertex " << i << " UV: (" << vec.x << ", " << vec.y << ")" << std::endl;
-            }
+              // Debug: Print UV coordinates for first few vertices
+            // if (i < 5) {
+            //     std::cout << "Vertex " << i << " UV: (" << vec.x << ", " << vec.y << ")" << std::endl;
+            // }
         } else {
             vertex.TexCoords = glm::vec2(0.0f, 0.0f);
-            std::cout << "Warning: No texture coordinates for vertex " << i << std::endl;
+            // std::cout << "Warning: No texture coordinates for vertex " << i << std::endl;
         }
 
         // Handle tangents and bitangents if available

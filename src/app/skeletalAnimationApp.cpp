@@ -170,12 +170,11 @@ void SkeletalAnimationApp::handleInput() {
         if (_input.keyboard.keyStates[GLFW_KEY_W] == GLFW_RELEASE && 
             _input.keyboard.keyStates[GLFW_KEY_A] == GLFW_RELEASE && 
             _input.keyboard.keyStates[GLFW_KEY_D] == GLFW_RELEASE) {
-            
-            _currentAnimationIndex = (_currentAnimationIndex + 1) % _animations.size();
+              _currentAnimationIndex = (_currentAnimationIndex + 1) % _animations.size();
             _animator->PlayAnimation(_animations[_currentAnimationIndex].get());
             
-            std::cout << "Switched to animation: " << _animations[_currentAnimationIndex]->GetName() 
-                     << " (" << (_currentAnimationIndex + 1) << "/" << _animations.size() << ")" << std::endl;
+            // std::cout << "Switched to animation: " << _animations[_currentAnimationIndex]->GetName() 
+            //          << " (" << (_currentAnimationIndex + 1) << "/" << _animations.size() << ")" << std::endl;
         }
         sPressed = true;
     } else if (_input.keyboard.keyStates[GLFW_KEY_J] == GLFW_RELEASE) {
@@ -250,28 +249,25 @@ void SkeletalAnimationApp::renderFrame() {
 
 void SkeletalAnimationApp::initShader() {
     _animatedShader.reset(new GLSLProgram);
-    try {
-        _animatedShader->attachVertexShaderFromFile(getAssetFullPath(animatedVertexShaderAddr));
+    try {        _animatedShader->attachVertexShaderFromFile(getAssetFullPath(animatedVertexShaderAddr));
         _animatedShader->attachFragmentShaderFromFile(getAssetFullPath(animatedFragmentShaderAddr));
         _animatedShader->link();
-        std::cout << "Animated shader compiled successfully!" << std::endl;
+        // std::cout << "Animated shader compiled successfully!" << std::endl;
     } catch (const std::exception& e) {
         std::cerr << "Animated shader compilation failed: " << e.what() << std::endl;
     }
 }
 
-void SkeletalAnimationApp::initModel() {
-    try {
+void SkeletalAnimationApp::initModel() {    try {
         _animatedModel.reset(new AnimatedModel(getAssetFullPath(modelPath)));
-        std::cout << "Animated model loaded successfully!" << std::endl;
+        // std::cout << "Animated model loaded successfully!" << std::endl;
     } catch (const std::exception& e) {
         std::cerr << "Failed to load animated model: " << e.what() << std::endl;
         
         // Try alternative models
-        for (const auto& altPath : alternativeModels) {
-            try {
+        for (const auto& altPath : alternativeModels) {            try {
                 _animatedModel.reset(new AnimatedModel(getAssetFullPath(altPath)));
-                std::cout << "Loaded alternative model: " << altPath << std::endl;
+                // std::cout << "Loaded alternative model: " << altPath << std::endl;
                 break;
             } catch (const std::exception& e2) {
                 std::cerr << "Alternative model " << altPath << " also failed: " << e2.what() << std::endl;
@@ -338,23 +334,20 @@ void SkeletalAnimationApp::setupLighting() {
 void SkeletalAnimationApp::setupAnimations() {
     if (!_animatedModel) return;
 
-    try {
-        // Get total number of animations in the file
+    try {        // Get total number of animations in the file
         int animationCount = Animation::GetAnimationCount(getAssetFullPath(animationPath));
-        std::cout << "Found " << animationCount << " animations in file" << std::endl;
-        
-        // Load all animations
+        // std::cout << "Found " << animationCount << " animations in file" << std::endl;
+          // Load all animations
         for (int i = 0; i < animationCount; ++i) {
             auto animation = std::make_unique<Animation>(getAssetFullPath(animationPath), _animatedModel.get(), i);
-            std::cout << "Loaded animation " << i << ": " << animation->GetName() << std::endl;
+            // std::cout << "Loaded animation " << i << ": " << animation->GetName() << std::endl;
             _animations.push_back(std::move(animation));
         }
-        
-        // Create animator with first animation
+          // Create animator with first animation
         if (!_animations.empty()) {
             _animator.reset(new Animator(_animations[0].get()));
             _currentAnimationIndex = 0;
-            std::cout << "Animation setup completed! Currently playing: " << _animations[0]->GetName() << std::endl;
+            // std::cout << "Animation setup completed! Currently playing: " << _animations[0]->GetName() << std::endl;
         }
         
     } catch (const std::exception& e) {
