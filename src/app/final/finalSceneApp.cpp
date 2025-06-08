@@ -64,7 +64,8 @@ FinalSceneApp::FinalSceneApp(const Options &options) : Application(options) {
     winInterface.reset(new Interface(getAssetFullPath(winInterfaceImageAddr)));
 
     // Init dialog
-    _dialog.reset(new Dialog("resource/text"));
+    // _dialog.reset(new Dialog("resource/text"));
+    _dialog = std::make_unique<Dialog>(getAssetFullPath(dialogAssetPath));
 }
 
 FinalSceneApp::~FinalSceneApp() {
@@ -351,9 +352,9 @@ void FinalSceneApp::updateState() {
             }
             break;
         case GameState::DuringMita:
-        if (during_debug_remain_time > 0) {
-            during_debug_remain_time -= _deltaTime;
-        } else {
+            if (during_debug_remain_time > 0) {
+                during_debug_remain_time -= _deltaTime;
+            } else {
                 _entityLogic.setEntityPos(glm::vec2(10.0f, -10.0f));
                 _entityLogic.Status = EntityStatus::PATROL;
                 gameState = GameState::AfterMita;
@@ -941,6 +942,16 @@ void FinalSceneApp::renderSceneToFramebuffer() {
         _dialog->draw(_deltaTime, _entityShader.get(), cameraPos, cameraRot);
         
         std::cout << "Rendered dialog during DuringMita state" << std::endl;
+    }    
+    if (gameState == GameState::DuringMita && _dialog) {
+        _texShader->use();
+        _texShader->setUniformMat4("projection", projection);
+        _texShader->setUniformMat4("view", view);
+
+        glm::vec3 dialogPos = _animatedMita->transform.position + glm::vec3(0.0f, 2.8f, 0.0f);
+        _dialog->setBasePosition(dialogPos);
+
+        _dialog->draw(_deltaTime, _texShader.get(), _camera->transform.position, _camera->transform.rotation);
     }
 }
 

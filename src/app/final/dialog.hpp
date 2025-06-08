@@ -16,10 +16,10 @@ struct DialogConfig {
     float baseDisplayTime = 2.0f;        // Base time for each dialog group
     float timePerText = 1.0f;             // Additional time per text fragment
     float fadeOutTime = 2.0f;             // Extra time for fade out effect
-    float lineSpacing = 0.4f;             // Vertical spacing between lines
+    float lineSpacing = 0.2f;             // Vertical spacing between lines
     bool autoAdvance = true;              // Whether to auto-advance dialogs
     bool loopDialogs = false;             // Whether to loop through dialogs
-    float charSpacing = 0.1f;             // Horizontal spacing between the start of one char to the start of the next
+    float charSpacing = 0.2f;             // Horizontal spacing between the start of one char to the start of the next
     float lineMaxWidth = 1.0f;            // Maximum width of a line before wrapping
     glm::vec3 textScale = glm::vec3(0.2f); // Uniform scale for all text models
 };

@@ -31,7 +31,7 @@ Dialog::Dialog(const std::string &assetPath, const DialogConfig& config)
 
                 // Apply base rotation (from Step 1)
                 glm::quat baseRot =
-                    glm::angleAxis(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+                    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
                 text->getTransform().rotation = baseRot;
 
                 // Check for line wrapping
@@ -43,7 +43,7 @@ Dialog::Dialog(const std::string &assetPath, const DialogConfig& config)
 
                 // Set position
                 text->getTransform().position =
-                    _basePosition + glm::vec3(currentLineWidth, -currentLineYOffset, 0.0f);
+                    _basePosition + glm::vec3(0.0f, -currentLineYOffset, currentLineWidth);
                 
                 // Advance horizontal position for the next character
                 currentLineWidth += _config.charSpacing;
