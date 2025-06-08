@@ -328,10 +328,13 @@ void FinalSceneApp::updateState() {
                     glm::vec3 dialogPos = _animatedMita->transform.position + glm::vec3(0.0f, 1.8f, 0.0f);
                     _dialog->setBasePosition(dialogPos);
                 }
+                during_debug_remain_time = 5.0f;
             }
             break;
         case GameState::DuringMita:
-        if (true || _dialog && _dialog->isFinished()) {
+        if (during_debug_remain_time > 0) {
+            during_debug_remain_time -= _deltaTime;
+        } else {
                 _entityLogic.setEntityPos(glm::vec2(10.0f, -10.0f));
                 _entityLogic.Status = EntityStatus::PATROL;
                 gameState = GameState::AfterMita;
@@ -839,18 +842,17 @@ void FinalSceneApp::renderSceneToFramebuffer() {
             }
             
             _mitaShader->setUniformMat4("model", _animatedMita->transform.getLocalMatrix());
-            
-            // Set camera position for lighting calculations
+              // Set camera position for lighting calculations
             _mitaShader->setUniformVec3("viewPosition", _camera->transform.position);
-              // Set material properties for mita (enhanced for better visibility)
-            _mitaShader->setUniformVec3("material.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
-            _mitaShader->setUniformVec3("material.diffuse", glm::vec3(0.8f, 0.8f, 0.8f));
-            _mitaShader->setUniformVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
-            _mitaShader->setUniformVec3("material.color", glm::vec3(1.0f, 1.0f, 1.0f));
+              // Set material properties for mita (enhanced for much better visibility - brighter)
+            _mitaShader->setUniformVec3("material.ambient", glm::vec3(0.4f, 0.4f, 0.4f));   // Increased from 0.2f
+            _mitaShader->setUniformVec3("material.diffuse", glm::vec3(1.2f, 1.2f, 1.2f));   // Increased from 0.8f
+            _mitaShader->setUniformVec3("material.specular", glm::vec3(0.8f, 0.8f, 0.8f));  // Increased from 0.5f
+            _mitaShader->setUniformVec3("material.color", glm::vec3(1.4f, 1.4f, 1.4f));     // Increased from 1.0f
             _mitaShader->setUniformFloat("material.shininess", 64.0f);
-              // Set ambient light (reduced intensity to prevent overexposure)
+              // Set ambient light (increased intensity for better mita visibility)
             _mitaShader->setUniformVec3("ambientLight.color", glm::vec3(1.0f, 1.0f, 1.0f));
-            _mitaShader->setUniformFloat("ambientLight.intensity", 0.8f);
+            _mitaShader->setUniformFloat("ambientLight.intensity", 1.2f);                     // Increased from 0.8f
             
             // Set mita's dynamic point lights
             setMitaPointLightsUniforms(_mitaShader.get());
