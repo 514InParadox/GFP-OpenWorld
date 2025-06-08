@@ -138,9 +138,11 @@ void SkeletalAnimationApp::handleInput() {
         std::cout << "Camera: WASD - Move, QE - Up/Down, Mouse - Look" << std::endl;
         std::cout << "Animation: SPACE - Pause/Resume, UP/DOWN - Speed, S - Switch Animation" << std::endl;
         std::cout << "Model: R - Reset, SHIFT+IJKL - Rotate" << std::endl;
+        std::cout << "Debug: U - Toggle UV Debug Mode" << std::endl;
         std::cout << "F1 - Show this help, ESC - Exit" << std::endl;
         std::cout << "Current Speed: " << _animationSpeed << std::endl;
         std::cout << "Paused: " << (_animationPaused ? "Yes" : "No") << std::endl;
+        std::cout << "UV Debug: " << (_debugUV ? "ON" : "OFF") << std::endl;
         if (!_animations.empty()) {
             std::cout << "Current Animation: " << _animations[_currentAnimationIndex]->GetName() 
                      << " (" << (_currentAnimationIndex + 1) << "/" << _animations.size() << ")" << std::endl;
@@ -149,6 +151,16 @@ void SkeletalAnimationApp::handleInput() {
         f1Pressed = true;
     } else if (_input.keyboard.keyStates[GLFW_KEY_F1] == GLFW_RELEASE) {
         f1Pressed = false;
+    }
+
+    // UV Debug toggle (with U key)
+    static bool uPressed = false;
+    if (_input.keyboard.keyStates[GLFW_KEY_U] != GLFW_RELEASE && !uPressed) {
+        _debugUV = !_debugUV;
+        std::cout << "UV Debug Mode: " << (_debugUV ? "ON - Displaying UV coordinates as colors" : "OFF - Normal rendering") << std::endl;
+        uPressed = true;
+    } else if (_input.keyboard.keyStates[GLFW_KEY_U] == GLFW_RELEASE) {
+        uPressed = false;
     }
 
     // Animation switching (with S key)
@@ -208,14 +220,15 @@ void SkeletalAnimationApp::renderFrame() {
     model = glm::rotate(model, glm::radians(_modelRotation.z), glm::vec3(0, 0, 1));
     model = glm::scale(model, _modelScale);
 
-    _animatedModel->transform.setFromTRS(model);
-
-    // Render animated model
+    _animatedModel->transform.setFromTRS(model);    // Render animated model
     if (_animatedModel && _animator) {
         _animatedShader->use();
         _animatedShader->setUniformMat4("projection", projection);
         _animatedShader->setUniformMat4("view", view);
         _animatedShader->setUniformMat4("model", _animatedModel->transform.getLocalMatrix());
+
+        // Set debug uniforms
+        _animatedShader->setUniformBool("debugUV", _debugUV);
 
         // Set bone matrices
         auto transforms = _animator->GetFinalBoneMatrices();
@@ -223,8 +236,10 @@ void SkeletalAnimationApp::renderFrame() {
             _animatedShader->setUniformMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
         }
 
-        // Set lighting uniforms
-        setupLighting();
+        // Set lighting uniforms (only if not in debug mode)
+        if (!_debugUV) {
+            setupLighting();
+        }
 
         _animatedModel->Draw(*_animatedShader);
     }
@@ -280,16 +295,43 @@ void SkeletalAnimationApp::setupLighting() {
     _animatedShader->setUniformVec3("dirLight.diffuse", _lightColor * _lightIntensity);
     _animatedShader->setUniformVec3("dirLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 
-    // Point light
-    _animatedShader->setUniformVec3("pointLights[0].position", _lightPosition);
-    _animatedShader->setUniformVec3("pointLights[0].ambient", glm::vec3(0.2f, 0.2f, 0.2f));
-    _animatedShader->setUniformVec3("pointLights[0].diffuse", _lightColor * _lightIntensity);
-    _animatedShader->setUniformVec3("pointLights[0].specular", glm::vec3(1.0f, 1.0f, 1.0f));
-    _animatedShader->setUniformFloat("pointLights[0].constant", 1.0f);
-    _animatedShader->setUniformFloat("pointLights[0].linear", 0.09f);
-    _animatedShader->setUniformFloat("pointLights[0].quadratic", 0.032f);
+    // Point lights (set all 4 slots, but only activate first one)
+    for (int i = 0; i < 4; i++) {
+        std::string baseName = "pointLights[" + std::to_string(i) + "]";
+        if (i == 0) {
+            // Main point light
+            _animatedShader->setUniformVec3(baseName + ".position", _lightPosition);
+            _animatedShader->setUniformVec3(baseName + ".ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+            _animatedShader->setUniformVec3(baseName + ".diffuse", _lightColor * _lightIntensity);
+            _animatedShader->setUniformVec3(baseName + ".specular", glm::vec3(1.0f, 1.0f, 1.0f));
+            _animatedShader->setUniformFloat(baseName + ".constant", 1.0f);
+            _animatedShader->setUniformFloat(baseName + ".linear", 0.09f);
+            _animatedShader->setUniformFloat(baseName + ".quadratic", 0.032f);
+        } else {
+            // Disable other point lights
+            _animatedShader->setUniformVec3(baseName + ".position", glm::vec3(0.0f));
+            _animatedShader->setUniformVec3(baseName + ".ambient", glm::vec3(0.0f));
+            _animatedShader->setUniformVec3(baseName + ".diffuse", glm::vec3(0.0f));
+            _animatedShader->setUniformVec3(baseName + ".specular", glm::vec3(0.0f));
+            _animatedShader->setUniformFloat(baseName + ".constant", 1.0f);
+            _animatedShader->setUniformFloat(baseName + ".linear", 0.0f);
+            _animatedShader->setUniformFloat(baseName + ".quadratic", 1.0f);
+        }
+    }
 
-    // Material
+    // Spot light (disabled by default)
+    _animatedShader->setUniformVec3("spotLight.position", glm::vec3(0.0f, 10.0f, 0.0f));
+    _animatedShader->setUniformVec3("spotLight.direction", glm::vec3(0.0f, -1.0f, 0.0f));
+    _animatedShader->setUniformFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+    _animatedShader->setUniformFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+    _animatedShader->setUniformVec3("spotLight.ambient", glm::vec3(0.0f)); // Disabled
+    _animatedShader->setUniformVec3("spotLight.diffuse", glm::vec3(0.0f)); // Disabled
+    _animatedShader->setUniformVec3("spotLight.specular", glm::vec3(0.0f)); // Disabled
+    _animatedShader->setUniformFloat("spotLight.constant", 1.0f);
+    _animatedShader->setUniformFloat("spotLight.linear", 0.09f);
+    _animatedShader->setUniformFloat("spotLight.quadratic", 0.032f);
+
+    // Material properties (also set in AnimatedMesh::Draw, but ensure it's set)
     _animatedShader->setUniformFloat("material.shininess", 64.0f);
 }
 

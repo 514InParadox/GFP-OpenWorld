@@ -11,6 +11,23 @@ Animation::Animation(const std::string& animationPath, AnimatedModel* model) {
     m_Duration = animation->mDuration;
     m_TicksPerSecond = animation->mTicksPerSecond;
     m_Name = animation->mName.C_Str();
+    
+    // Store the global inverse transformation matrix
+    m_GlobalInverseTransform = glm::inverse(AssimpGLMHelpers::ConvertMatrixToGLMFormat(rootNode->mTransformation));
+      // Debug: Print root transformation and global inverse
+    // std::cout << "\n=== Animation Loading Debug ===" << std::endl;
+    // std::cout << "Animation Name: " << m_Name << std::endl;
+    // glm::mat4 rootTransform = AssimpGLMHelpers::ConvertMatrixToGLMFormat(rootNode->mTransformation);
+    // std::cout << "Root Transform Matrix:" << std::endl;
+    // for (int i = 0; i < 4; i++) {
+    //     std::cout << "[" << rootTransform[i][0] << ", " << rootTransform[i][1] << ", " << rootTransform[i][2] << ", " << rootTransform[i][3] << "]" << std::endl;
+    // }
+    // std::cout << "Global Inverse Transform Matrix:" << std::endl;
+    // for (int i = 0; i < 4; i++) {
+    //     std::cout << "[" << m_GlobalInverseTransform[i][0] << ", " << m_GlobalInverseTransform[i][1] << ", " << m_GlobalInverseTransform[i][2] << ", " << m_GlobalInverseTransform[i][3] << "]" << std::endl;
+    // }
+    // std::cout << "==============================\n" << std::endl;
+    
     ReadHierarchyData(m_RootNode, rootNode);
     ReadMissingBones(animation, *model);
 }
@@ -26,6 +43,24 @@ Animation::Animation(const std::string& animationPath, AnimatedModel* model, int
     m_Duration = animation->mDuration;
     m_TicksPerSecond = animation->mTicksPerSecond;
     m_Name = animation->mName.C_Str();
+    
+    // Store the global inverse transformation matrix
+    m_GlobalInverseTransform = glm::inverse(AssimpGLMHelpers::ConvertMatrixToGLMFormat(rootNode->mTransformation));
+    
+    // Debug: Print root transformation and global inverse for indexed animation
+    std::cout << "\n=== Animation Loading Debug (Index " << animationIndex << ") ===" << std::endl;
+    std::cout << "Animation Name: " << m_Name << std::endl;
+    glm::mat4 rootTransform = AssimpGLMHelpers::ConvertMatrixToGLMFormat(rootNode->mTransformation);
+    std::cout << "Root Transform Matrix:" << std::endl;
+    for (int i = 0; i < 4; i++) {
+        std::cout << "[" << rootTransform[i][0] << ", " << rootTransform[i][1] << ", " << rootTransform[i][2] << ", " << rootTransform[i][3] << "]" << std::endl;
+    }
+    std::cout << "Global Inverse Transform Matrix:" << std::endl;
+    for (int i = 0; i < 4; i++) {
+        std::cout << "[" << m_GlobalInverseTransform[i][0] << ", " << m_GlobalInverseTransform[i][1] << ", " << m_GlobalInverseTransform[i][2] << ", " << m_GlobalInverseTransform[i][3] << "]" << std::endl;
+    }
+    std::cout << "==============================\n" << std::endl;
+    
     ReadHierarchyData(m_RootNode, rootNode);
     ReadMissingBones(animation, *model);
 }

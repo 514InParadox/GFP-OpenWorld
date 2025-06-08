@@ -11,7 +11,8 @@ uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
 
-const int MAX_BONES = 100;
+// NOTE: This must match MAX_BONES in animation_data.hpp
+const int MAX_BONES = 200;
 const int MAX_BONE_INFLUENCE = 4;
 uniform mat4 finalBonesMatrices[MAX_BONES];
 
@@ -23,26 +24,41 @@ void main()
 {
     vec4 totalPosition = vec4(0.0f);
     vec3 totalNormal = vec3(0.0f);
-    
+    float totalWeight = 0.0f;
+    bool hasBoneInfluence = false;
+      // Calculate bone-influenced position and normal
     for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
     {
-        if(aBoneIds[i] == -1) 
+        if(aBoneIds[i] == -1 || aWeights[i] <= 0.0f) 
             continue;
-        if(aBoneIds[i] >= MAX_BONES) 
-        {
-            totalPosition = vec4(aPos, 1.0f);
-            break;
-        }
+        if(aBoneIds[i] < 0 || aBoneIds[i] >= MAX_BONES) 
+            continue;
+            
+        hasBoneInfluence = true;
+        
         vec4 localPosition = finalBonesMatrices[aBoneIds[i]] * vec4(aPos, 1.0f);
         totalPosition += localPosition * aWeights[i];
+        
         vec3 localNormal = mat3(finalBonesMatrices[aBoneIds[i]]) * aNormal;
         totalNormal += localNormal * aWeights[i];
+        
+        totalWeight += aWeights[i];
+    }
+    
+    // If no bone influence or weights don't sum to 1, use original position
+    if (!hasBoneInfluence || totalWeight < 0.01f) {
+        totalPosition = vec4(aPos, 1.0f);
+        totalNormal = aNormal;
+    } else {
+        // Normalize by total weight to handle cases where weights don't sum to exactly 1
+        totalPosition /= totalWeight;
+        totalNormal /= totalWeight;
     }
 		
     mat4 viewModel = view * model;
     gl_Position = projection * viewModel * totalPosition;
     
     FragPos = vec3(model * totalPosition);
-    Normal = mat3(transpose(inverse(model))) * totalNormal;
+    Normal = mat3(transpose(inverse(model))) * normalize(totalNormal);
     TexCoords = aTexCoords;
 }

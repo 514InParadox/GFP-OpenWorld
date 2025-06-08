@@ -43,10 +43,11 @@ private:
     // Lighting
     glm::vec3 _lightPosition = glm::vec3(2.0f, 4.0f, 2.0f);
     glm::vec3 _lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-    float _lightIntensity = 1.0f;
-
-    // Model transform
+    float _lightIntensity = 1.0f;    // Model transform
     glm::vec3 _modelPosition = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 _modelRotation = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 _modelScale = glm::vec3(1.0f, 1.0f, 1.0f);
+    
+    // Debug options
+    bool _debugUV = false;
 };

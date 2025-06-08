@@ -11,17 +11,66 @@ AnimatedMesh::AnimatedMesh(std::vector<AnimatedVertex> vertices, std::vector<uns
 }
 
 void AnimatedMesh::Draw(GLSLProgram& shader) {
-    // Bind textures
-    for (unsigned int i = 0; i < textures.size(); i++) {
-        textures[i]->bind(i);
+    // Set material properties first
+    shader.setUniformFloat("material.shininess", 64.0f);
+    
+    // Initialize texture binding state
+    bool hasTextures = !textures.empty();
+    
+    if (hasTextures) {
+        // Bind textures and set uniforms
+        unsigned int diffuseNr = 1;
+        unsigned int specularNr = 1;
+        unsigned int normalNr = 1;
+        unsigned int heightNr = 1;
         
-        // Set texture uniforms (simplified - just bind as diffuse for now)
-        if (i == 0) {
-            shader.setUniformInt("texture_diffuse1", i);
-        } else if (i == 1) {
-            shader.setUniformInt("texture_specular1", i);
+        for (unsigned int i = 0; i < textures.size(); i++) {
+            textures[i]->bind(i);
+            
+            // Determine texture type based on position (this is a simplified approach)
+            std::string name;
+            std::string number;
+            
+            if (i == 0) {
+                name = "texture_diffuse";
+                number = std::to_string(diffuseNr++);
+            } else if (i == 1) {
+                name = "texture_specular";
+                number = std::to_string(specularNr++);
+            } else if (i == 2) {
+                name = "texture_normal";
+                number = std::to_string(normalNr++);
+            } else if (i == 3) {
+                name = "texture_height";
+                number = std::to_string(heightNr++);
+            } else {
+                // Default to diffuse for additional textures
+                name = "texture_diffuse";
+                number = std::to_string(diffuseNr++);
+            }
+            
+            // Set the sampler to the correct texture unit
+            shader.setUniformInt(("material." + name + number).c_str(), i);
         }
-        // Add more texture slots if needed
+    } else {
+        // No textures loaded - bind a default white texture
+        static GLuint whiteTexture = 0;
+        if (whiteTexture == 0) {
+            glGenTextures(1, &whiteTexture);
+            glBindTexture(GL_TEXTURE_2D, whiteTexture);
+            unsigned char whitePixel[] = {255, 255, 255, 255};
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, whitePixel);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        }
+        
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, whiteTexture);
+        shader.setUniformInt("material.texture_diffuse1", 0);
+        
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, whiteTexture);
+        shader.setUniformInt("material.texture_specular1", 1);
     }
 
     // draw mesh
@@ -30,9 +79,14 @@ void AnimatedMesh::Draw(GLSLProgram& shader) {
     glBindVertexArray(0);
 
     // Unbind textures
-    for (unsigned int i = 0; i < textures.size(); i++) {
-        textures[i]->unbind();
+    if (hasTextures) {
+        for (unsigned int i = 0; i < textures.size(); i++) {
+            textures[i]->unbind();
+        }
     }
+    
+    // Reset active texture
+    glActiveTexture(GL_TEXTURE0);
 }
 
 void AnimatedMesh::setupMesh() {

@@ -21,27 +21,25 @@ public:
     Animation(const std::string& animationPath, AnimatedModel* model, int animationIndex);
     ~Animation() = default;
 
-    Bone* FindBone(const std::string& name);
-
-    inline float GetTicksPerSecond() { return m_TicksPerSecond; }
+    Bone* FindBone(const std::string& name);    inline float GetTicksPerSecond() { return m_TicksPerSecond; }
     inline float GetDuration() { return m_Duration; }
     inline const AssimpNodeData& GetRootNode() { return m_RootNode; }
     inline const std::map<std::string, BoneInfo>& GetBoneIDMap() { return m_BoneInfoMap; }
     inline const std::string& GetName() const { return m_Name; }
+    inline const glm::mat4& GetGlobalInverseTransform() const { return m_GlobalInverseTransform; }
 
     // Static method to get animation count from file
     static int GetAnimationCount(const std::string& animationPath);
 
 private:
     void ReadMissingBones(const aiAnimation* animation, AnimatedModel& model);
-    void ReadHierarchyData(AssimpNodeData& dest, const aiNode* src);
-
-    std::string m_Name;
+    void ReadHierarchyData(AssimpNodeData& dest, const aiNode* src);    std::string m_Name;
     float m_Duration;
     int m_TicksPerSecond;
     std::vector<Bone> m_Bones;
     AssimpNodeData m_RootNode;
     std::map<std::string, BoneInfo> m_BoneInfoMap;
+    glm::mat4 m_GlobalInverseTransform;
 };
 
 // 0 <= stamp <= 1

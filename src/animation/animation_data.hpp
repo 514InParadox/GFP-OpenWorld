@@ -4,6 +4,9 @@
 #include <string>
 #include <vector>
 
+// Define maximum number of bones supported by the animation system
+#define MAX_BONES 200
+
 struct BoneInfo {
     // id is index in finalBoneMatrices
     int id;

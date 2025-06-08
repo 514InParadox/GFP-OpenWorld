@@ -54,6 +54,7 @@ uniform DirLight dirLight;
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform SpotLight spotLight;
 uniform Material material;
+uniform bool debugUV; // Debug uniform to show UV coordinates
 
 // function prototypes
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);
@@ -62,6 +63,12 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 
 void main()
 {    
+    // Debug mode: show UV coordinates as colors
+    if (debugUV) {
+        FragColor = vec4(TexCoords.x, TexCoords.y, 0.0, 1.0);
+        return;
+    }
+    
     // properties
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
@@ -86,10 +93,26 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
     // specular shading
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    
+    // Validate UV coordinates
+    vec2 validUV = clamp(TexCoords, 0.0, 1.0);
+    
+    // sample textures with fallback
+    vec3 diffuseColor = vec3(texture(material.texture_diffuse1, validUV));
+    vec3 specularColor = vec3(texture(material.texture_specular1, validUV));
+    
+    // If texture sampling returns black/very dark, use a default color
+    if (length(diffuseColor) < 0.1) {
+        diffuseColor = vec3(0.8, 0.8, 0.8); // Light gray default
+    }
+    if (length(specularColor) < 0.1) {
+        specularColor = vec3(0.2, 0.2, 0.2); // Dark gray default
+    }
+    
     // combine results
-    vec3 ambient = light.ambient * vec3(texture(material.texture_diffuse1, TexCoords));
-    vec3 diffuse = light.diffuse * diff * vec3(texture(material.texture_diffuse1, TexCoords));
-    vec3 specular = light.specular * spec * vec3(texture(material.texture_specular1, TexCoords));
+    vec3 ambient = light.ambient * diffuseColor;
+    vec3 diffuse = light.diffuse * diff * diffuseColor;
+    vec3 specular = light.specular * spec * specularColor;
     return (ambient + diffuse + specular);
 }
 
@@ -105,10 +128,26 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     // attenuation
     float distance = length(light.position - fragPos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));    
+    
+    // Validate UV coordinates
+    vec2 validUV = clamp(TexCoords, 0.0, 1.0);
+    
+    // sample textures with fallback
+    vec3 diffuseColor = vec3(texture(material.texture_diffuse1, validUV));
+    vec3 specularColor = vec3(texture(material.texture_specular1, validUV));
+    
+    // If texture sampling returns black/very dark, use a default color
+    if (length(diffuseColor) < 0.1) {
+        diffuseColor = vec3(0.8, 0.8, 0.8); // Light gray default
+    }
+    if (length(specularColor) < 0.1) {
+        specularColor = vec3(0.2, 0.2, 0.2); // Dark gray default
+    }
+    
     // combine results
-    vec3 ambient = light.ambient * vec3(texture(material.texture_diffuse1, TexCoords));
-    vec3 diffuse = light.diffuse * diff * vec3(texture(material.texture_diffuse1, TexCoords));
-    vec3 specular = light.specular * spec * vec3(texture(material.texture_specular1, TexCoords));
+    vec3 ambient = light.ambient * diffuseColor;
+    vec3 diffuse = light.diffuse * diff * diffuseColor;
+    vec3 specular = light.specular * spec * specularColor;
     ambient *= attenuation;
     diffuse *= attenuation;
     specular *= attenuation;
@@ -131,10 +170,26 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     float theta = dot(lightDir, normalize(-light.direction)); 
     float epsilon = light.cutOff - light.outerCutOff;
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
+    
+    // Validate UV coordinates
+    vec2 validUV = clamp(TexCoords, 0.0, 1.0);
+    
+    // sample textures with fallback
+    vec3 diffuseColor = vec3(texture(material.texture_diffuse1, validUV));
+    vec3 specularColor = vec3(texture(material.texture_specular1, validUV));
+    
+    // If texture sampling returns black/very dark, use a default color
+    if (length(diffuseColor) < 0.1) {
+        diffuseColor = vec3(0.8, 0.8, 0.8); // Light gray default
+    }
+    if (length(specularColor) < 0.1) {
+        specularColor = vec3(0.2, 0.2, 0.2); // Dark gray default
+    }
+    
     // combine results
-    vec3 ambient = light.ambient * vec3(texture(material.texture_diffuse1, TexCoords));
-    vec3 diffuse = light.diffuse * diff * vec3(texture(material.texture_diffuse1, TexCoords));
-    vec3 specular = light.specular * spec * vec3(texture(material.texture_specular1, TexCoords));
+    vec3 ambient = light.ambient * diffuseColor;
+    vec3 diffuse = light.diffuse * diff * diffuseColor;
+    vec3 specular = light.specular * spec * specularColor;
     ambient *= attenuation * intensity;
     diffuse *= attenuation * intensity;
     specular *= attenuation * intensity;
