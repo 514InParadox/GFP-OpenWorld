@@ -133,8 +133,10 @@ void Dialog::draw(const float &deltaTime, GLSLProgram* shader) {
     drawDropText(shader);
 }
 
-void Dialog::draw(const float &deltaTime, GLSLProgram* shader, const glm::vec3& cameraPos) {
+void Dialog::draw(const float &deltaTime, GLSLProgram* shader, const glm::vec3& cameraPos, const glm::quat& cameraRot) {
     proceed(deltaTime);
+    (void)cameraPos; // position not required when using camera rotation
+
 
     // Rotate texts to face the camera for better readability
     auto billboard = [&](std::unique_ptr<Text>& t){

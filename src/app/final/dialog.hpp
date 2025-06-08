@@ -7,6 +7,7 @@
 #include <filesystem>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 class GLSLProgram;  // forward declaration for shader
 
@@ -19,7 +20,7 @@ struct DialogConfig {
     bool autoAdvance = true;              // Whether to auto-advance dialogs
     bool loopDialogs = false;             // Whether to loop through dialogs
     float charSpacing = 0.1f;             // Horizontal spacing between the start of one char to the start of the next
-    float lineMaxWidth = 5.0f;            // Maximum width of a line before wrapping
+    float lineMaxWidth = 1.0f;            // Maximum width of a line before wrapping
     glm::vec3 textScale = glm::vec3(0.2f); // Uniform scale for all text models
 };
 
@@ -43,7 +44,7 @@ public:
 
     // Update and draw all dialogs
     void draw(const float &deltaTime, GLSLProgram* shader);
-    void draw(const float &deltaTime, GLSLProgram* shader, const glm::vec3& cameraPos);
+    void draw(const float &deltaTime, GLSLProgram* shader, const glm::vec3& cameraPos, const glm::quat& cameraRot);
     
     // Get current dialog info
     // size_t getCurrentDialogIndex() const; // Removed

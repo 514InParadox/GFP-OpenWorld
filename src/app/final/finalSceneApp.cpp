@@ -654,7 +654,7 @@ void FinalSceneApp::renderSceneToFramebuffer() {
         glm::vec3 dialogPos = _mita->transform.position + glm::vec3(0.0f, 1.8f, 0.0f);
         _dialog->setBasePosition(dialogPos);
 
-        _dialog->draw(_deltaTime, _texShader.get(), _camera->transform.position);
+        _dialog->draw(_deltaTime, _texShader.get(), _camera->transform.position, _camera->transform.rotation);
     }
 }
 
