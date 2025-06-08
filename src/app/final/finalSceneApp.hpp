@@ -77,8 +77,10 @@ private:
     // Dynamic point light management
     void updateDynamicPointLights();
     void updateMitaPointLights();
+    void updateCameraPointLights();
     void setPointLightsUniforms(GLSLProgram* shader);
     void setMitaPointLightsUniforms(GLSLProgram* shader);
+    void setCameraPointLightsUniforms(GLSLProgram* shader);
     
     // Animation system methods
     void initAnimatedModels();
@@ -155,6 +157,7 @@ private:
 
     // Dynamic point lights
     std::vector<DynamicPointLight> _dynamicPointLights;    std::vector<DynamicPointLight> _mitaPointLights;
+    std::vector<DynamicPointLight> _cameraPointLights;
     static const int MAX_POINT_LIGHTS = 32;
 
     EntityLogic _entityLogic;

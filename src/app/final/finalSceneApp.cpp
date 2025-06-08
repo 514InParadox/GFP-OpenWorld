@@ -82,6 +82,7 @@ void FinalSceneApp::handleInput() {
                 // playerPosition = glm::vec2(playerCoord.first - 150, playerCoord.second - 150);
                 playerPosition = glm::vec2(-242, -160);
                 _entityLogic.setEntityPos(glm::vec2(0.0f, 0.0f));
+                _entityLogic.Status = EntityStatus::PATROL;
             }
             
             return;
@@ -108,12 +109,7 @@ void FinalSceneApp::handleInput() {
     else    
         cameraMoveSpeed = playerMoveSpeedSlow;
 
-    // Toggle control mode with P key
-    if (_input.keyboard.keyStates[GLFW_KEY_P] == GLFW_PRESS) {
-        _controlMode = (_controlMode == ControlMode::Mita) ? ControlMode::Entity : ControlMode::Mita;
-        std::cout << "Control mode switched to: " << 
-                     ((_controlMode == ControlMode::Mita) ? "Mita" : "Entity") << std::endl;
-    }    
+    // P key control mode switching disabled - Entity now uses AI logic    
 
     // player movement
     glm::vec3 deltaPosition = glm::vec3(0.0f);
@@ -267,7 +263,7 @@ void FinalSceneApp::initShader() {
 
     _gunShader.reset(new GLSLProgram);
     _gunShader->attachVertexShaderFromFile(getAssetFullPath(gunVertexShaderAddr));
-    _gunShader->attachFragmentShaderFromFile(getAssetFullPath(gunFragmentShaderAddr));
+    _gunShader->attachFragmentShaderFromFile(getAssetFullPath(entityFragmentShaderAddr));
     _gunShader->link();
 
     _emissiveShader.reset(new GLSLProgram);
@@ -314,11 +310,10 @@ void FinalSceneApp::updateState() {
     static float during_debug_remain_time;
     switch (gameState) {
         case GameState::BeforeMita:
-            std::cout << _entityLogic.getEntityPos().x << ", " << _entityLogic.getEntityPos().y << std::endl;
-            std::cout << playerPosition.x << ", " << playerPosition.y << std::endl;
+            // Entity collision detection
             if (distance(_entityLogic.getEntityPos(), playerPosition) < EntityTriggleDist) {
                 puts("Lose: BeforeMita");
-                // gameState = GameState::LoseInterface;
+                gameState = GameState::LoseInterface;
             }
             mitaPos = glm::vec2(_animatedMita->transform.position.x, _animatedMita->transform.position.z);
             if (distance(mitaPos, playerPosition) < MitaTriggleDist) {
@@ -341,8 +336,7 @@ void FinalSceneApp::updateState() {
             }
             break;
         case GameState::AfterMita:
-            std::cout << _entityLogic.getEntityPos().x << ", " << _entityLogic.getEntityPos().y << std::endl;
-            std::cout << playerPosition.x << ", " << playerPosition.y << std::endl;
+            // Entity collision detection
             if (distance(_entityLogic.getEntityPos(), playerPosition) < EntityTriggleDist) {
                 puts("Lose: AfterMita");
                 gameState = GameState::LoseInterface;
@@ -360,6 +354,7 @@ void FinalSceneApp::updateState() {
         default:
             break;
     }
+    // Entity AI logic movement
     _entityLogic.move(playerPosition, _deltaTime);
 }
 
@@ -507,29 +502,14 @@ void FinalSceneApp::renderSceneToFramebuffer() {
     // _mita->transform.position = glm::vec3(mapLattice.first * 300.0f - 150.0f + mitaCoord.first, 0.0f, mapLattice.second * 300.0f - 150.0f + mitaCoord.second);    // Manual control with IJKL keys (switchable between mita and entity)
     // glm::vec3 mitaPosition = _animatedMita ? _animatedMita->transform.position : _mita->transform.position;
     // glm::vec3 entityPosition = _animatedEntity ? _animatedEntity->transform.position : _entity->transform.position;
-    glm::vec3 mitaPosition = _animatedMita->transform.position;
-    glm::vec3 entityPosition = _animatedEntity->transform.position;
-    float moveSpeed = 3.0f; // Units per second
+    // Mita position based on map coordinates
+    glm::vec3 mitaPosition = glm::vec3(mapLattice.first * 300.0f - 150.0f + mitaCoord.first, 0.0f, mapLattice.second * 300.0f - 150.0f + mitaCoord.second);
     
-    // Movement controls (IJKL keys) - controlled object depends on _controlMode
-    glm::vec3* controlledPosition = (_controlMode == ControlMode::Mita) ? &mitaPosition : &entityPosition;
-    
-    if (_controlMode == ControlMode::Entity) {
-        if (_input.keyboard.keyStates[GLFW_KEY_I] != GLFW_RELEASE) {
-            controlledPosition->z -= moveSpeed * _deltaTime; // Move forward (negative Z)
-        }
-        if (_input.keyboard.keyStates[GLFW_KEY_K] != GLFW_RELEASE) {
-            controlledPosition->z += moveSpeed * _deltaTime; // Move backward (positive Z)
-        }
-        if (_input.keyboard.keyStates[GLFW_KEY_J] != GLFW_RELEASE) {
-            controlledPosition->x -= moveSpeed * _deltaTime; // Move left (negative X)
-        }
-        if (_input.keyboard.keyStates[GLFW_KEY_L] != GLFW_RELEASE) {
-            controlledPosition->x += moveSpeed * _deltaTime; // Move right (positive X)
-        }
-    } else if (_controlMode == ControlMode::Mita) {
-        *controlledPosition = glm::vec3(mapLattice.first * 300 - 150 + mitaCoord.first, 0.0f, mapLattice.second * 300 - 150 + mitaCoord.second);
-    }
+    // Entity position controlled by AI logic
+    glm::vec2 entityPos = _entityLogic.getEntityPos();
+    glm::vec3 entityPosition = glm::vec3(entityPos.x, 0.3f, entityPos.y);
+    // IJKL key controls removed - Entity now uses AI logic, Mita uses fixed position
+    // mitaPosition = glm::vec3(mapLattice.first * 300 - 150 + mitaCoord.first, 0.0f, mapLattice.second * 300 - 150 + mitaCoord.second);
       // Apply positions to models (both regular and animated models for compatibility)
     if (_animatedEntity) {
         _animatedEntity->transform.position = entityPosition;
@@ -549,39 +529,41 @@ void FinalSceneApp::renderSceneToFramebuffer() {
     //     _mita->transform.scale = glm::vec3(50.0f); // Increased scale for better visibility
     // }
 
-    std::cout << "mita: " << mitaPosition.x << ", " << mitaPosition.z << std::endl;    // Debug output for mita and entity positions and game state
+    // TEST: Disable mita position output
+    // std::cout << "mita: " << mitaPosition.x << ", " << mitaPosition.z << std::endl;    // Debug output for mita and entity positions and game state
     static float debugTimer = 0.0f;
-    debugTimer += _deltaTime;
-    if (debugTimer >= 2.0f) { // Output debug info every 2 seconds
-        std::cout << "=== Debug Info ===" << std::endl;
-        std::cout << "Control mode: " << ((_controlMode == ControlMode::Mita) ? "Mita" : "Entity") << std::endl;
-        
-        // Use animated models for position if available
-        // glm::vec3 currentMitaPos = _animatedMita ? _animatedMita->transform.position : _mita->transform.position;
-        // glm::vec3 currentEntityPos = _animatedEntity ? _animatedEntity->transform.position : _entity->transform.position;
-        glm::vec3 currentMitaPos = _animatedMita->transform.position;
-        glm::vec3 currentEntityPos = _animatedEntity->transform.position;
-        
-        std::cout << "Mita position: (" << std::fixed << std::setprecision(3) 
-                  << currentMitaPos.x << ", " 
-                  << currentMitaPos.y << ", " 
-                  << currentMitaPos.z << ")" << std::endl;
-        
-        std::cout << "Entity position: (" << std::fixed << std::setprecision(3) 
-                  << currentEntityPos.x << ", " 
-                  << currentEntityPos.y << ", " 
-                  << currentEntityPos.z << ")" << std::endl;
-        
-        std::cout << "Camera position: (" << std::fixed << std::setprecision(3) 
-                  << _camera->transform.position.x << ", " 
-                  << _camera->transform.position.y << ", " 
-                  << _camera->transform.position.z << ")" << std::endl;
-        
-        // Output current game state
-        const char* stateNames[] = {"StartInterface", "BeforeMita", "DuringMita", "AfterMita", "AfterEntity", "LoseInterface", "WinInterface"};
-        std::cout << "Current game state: " << stateNames[static_cast<int>(gameState)] << std::endl;
-          debugTimer = 0.0f;
-    }
+            debugTimer += _deltaTime;
+        if (debugTimer >= 2.0f) { // Output debug info every 2 seconds
+            // TEST: Disable general debug info to focus on entity lighting
+            // std::cout << "=== Debug Info ===" << std::endl;
+            // std::cout << "Control mode: " << ((_controlMode == ControlMode::Mita) ? "Mita" : "Entity") << std::endl;
+            
+            // Use animated models for position if available
+            // glm::vec3 currentMitaPos = _animatedMita ? _animatedMita->transform.position : _mita->transform.position;
+            // glm::vec3 currentEntityPos = _animatedEntity ? _animatedEntity->transform.position : _entity->transform.position;
+            // glm::vec3 currentMitaPos = _animatedMita->transform.position;
+            // glm::vec3 currentEntityPos = _animatedEntity->transform.position;
+            
+            // std::cout << "Mita position: (" << std::fixed << std::setprecision(3) 
+            //           << currentMitaPos.x << ", " 
+            //           << currentMitaPos.y << ", " 
+            //           << currentMitaPos.z << ")" << std::endl;
+            
+            // std::cout << "Entity position: (" << std::fixed << std::setprecision(3) 
+            //           << currentEntityPos.x << ", " 
+            //           << currentEntityPos.y << ", " 
+            //           << currentEntityPos.z << ")" << std::endl;
+            
+            // std::cout << "Camera position: (" << std::fixed << std::setprecision(3) 
+            //           << _camera->transform.position.x << ", " 
+            //           << _camera->transform.position.y << ", " 
+            //           << _camera->transform.position.z << ")" << std::endl;
+            
+            // Output current game state
+            // const char* stateNames[] = {"StartInterface", "BeforeMita", "DuringMita", "AfterMita", "AfterEntity", "LoseInterface", "WinInterface"};
+            // std::cout << "Current game state: " << stateNames[static_cast<int>(gameState)] << std::endl;
+              debugTimer = 0.0f;
+        }
     
     // Draw map terrain
     _mapShader->use();
@@ -631,16 +613,17 @@ void FinalSceneApp::renderSceneToFramebuffer() {
     updateDynamicPointLights();
     
     // Update mita point lights based on mita position and map data
-    updateMitaPointLights();    // draw entity
+    updateMitaPointLights();
+    
+    // Update camera point lights based on camera position and map data
+    updateCameraPointLights();    // draw entity
     if (gameState == GameState::BeforeMita || gameState == GameState::AfterMita) {
         if (_animatedEntity && _entityAnimator) {
             _entityShader->use();
             _entityShader->setUniformMat4("projection", projection);
             _entityShader->setUniformMat4("view", view);
             
-            // Update entity position from EntityLogic
-            glm::vec2 entityPos = _entityLogic.getEntityPos();
-            _animatedEntity->transform.position = glm::vec3(entityPos.x, 0.3f, entityPos.y);
+            // Entity position is now set by AI logic above
               // Make entity face towards player (camera position)
             glm::vec3 playerPosition = _camera->transform.position;
             glm::vec3 entityToPlayer = playerPosition - _animatedEntity->transform.position;
@@ -661,16 +644,16 @@ void FinalSceneApp::renderSceneToFramebuffer() {
             // Set camera position for lighting calculations
             _entityShader->setUniformVec3("viewPosition", _camera->transform.position);
             
-            // Set material properties (reduced reflectivity to prevent over-brightness)
-            _entityShader->setUniformVec3("material.ambient", glm::vec3(0.05f, 0.05f, 0.05f));
-            _entityShader->setUniformVec3("material.diffuse", glm::vec3(0.4f, 0.4f, 0.4f));
-            _entityShader->setUniformVec3("material.specular", glm::vec3(0.2f, 0.2f, 0.2f));
-            _entityShader->setUniformVec3("material.color", glm::vec3(0.7f, 0.7f, 0.7f));
-            _entityShader->setUniformFloat("material.shininess", 64.0f);
+            // Set material properties (enhanced for better light visibility)
+            _entityShader->setUniformVec3("material.ambient", glm::vec3(0.1f, 0.1f, 0.1f));   // Slightly higher ambient
+            _entityShader->setUniformVec3("material.diffuse", glm::vec3(0.8f, 0.8f, 0.8f));   // Much higher diffuse
+            _entityShader->setUniformVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));  // Higher specular
+            _entityShader->setUniformVec3("material.color", glm::vec3(0.9f, 0.9f, 0.9f));     // Brighter base color
+            _entityShader->setUniformFloat("material.shininess", 32.0f);                       // Lower shininess for broader highlights
             
-            // Set ambient light
+            // Set ambient light (reduced to make point lights more visible)
             _entityShader->setUniformVec3("ambientLight.color", glm::vec3(1.0f, 1.0f, 1.0f));
-            _entityShader->setUniformFloat("ambientLight.intensity", 0.2f);
+            _entityShader->setUniformFloat("ambientLight.intensity", 0.05f);                   // Much lower ambient
             
             // Set dynamic point lights
             setPointLightsUniforms(_entityShader.get());
@@ -681,11 +664,42 @@ void FinalSceneApp::renderSceneToFramebuffer() {
                 _entityShader->setUniformMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
             }
             
-            // Debug: Output number of lights being used
+            // Debug: Output entity position and lighting info
             static float lightCountTimer = 0.0f;
             lightCountTimer += _deltaTime;
             if (lightCountTimer >= 2.0f) {
-                std::cout << "Setting " << _dynamicPointLights.size() << " point lights to entity shader" << std::endl;
+                std::cout << "=== Entity Debug Info ===" << std::endl;
+                std::cout << "Entity position: (" << std::fixed << std::setprecision(2) 
+                          << _animatedEntity->transform.position.x << ", " 
+                          << _animatedEntity->transform.position.y << ", " 
+                          << _animatedEntity->transform.position.z << ")" << std::endl;
+                std::cout << "Player position: (" << std::fixed << std::setprecision(2) 
+                          << _camera->transform.position.x << ", " 
+                          << _camera->transform.position.y << ", " 
+                          << _camera->transform.position.z << ")" << std::endl;
+                
+                // Output entity status
+                EntityStatus currentStatus = _entityLogic.getStatus();
+                std::string statusStr;
+                switch (currentStatus) {
+                    case EntityStatus::PATROL:
+                        statusStr = "PATROL";
+                        break;
+                    case EntityStatus::CHASE:
+                        statusStr = "CHASE";
+                        break;
+                    default:
+                        statusStr = "UNKNOWN";
+                        break;
+                }
+                std::cout << "Entity status: " << statusStr << std::endl;
+                
+                // Calculate distance to player
+                glm::vec2 entityPos2D = _entityLogic.getEntityPos();
+                glm::vec2 playerPos2D = glm::vec2(_camera->transform.position.x, _camera->transform.position.z);
+                float distanceToPlayer = glm::length(entityPos2D - playerPos2D);
+                std::cout << "Distance to player: " << std::fixed << std::setprecision(1) << distanceToPlayer << std::endl;
+                
                 lightCountTimer = 0.0f;
             }
             
@@ -729,48 +743,44 @@ void FinalSceneApp::renderSceneToFramebuffer() {
         // Set camera position for lighting calculations
         _gunShader->setUniformVec3("viewPosition", _camera->transform.position);
         
-        // Set material properties for gun
-        _gunShader->setUniformVec3("material.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
-        _gunShader->setUniformVec3("material.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
-        _gunShader->setUniformVec3("material.specular", glm::vec3(0.8f, 0.8f, 0.8f));
-        _gunShader->setUniformVec3("material.color", glm::vec3(0.3f, 0.3f, 0.3f));
-        _gunShader->setUniformFloat("material.shininess", 128.0f);
-          // Set ambient light
+        // Set material properties for gun (dark gray/black tactical look)
+        _gunShader->setUniformVec3("material.ambient", glm::vec3(0.6f, 0.6f, 0.6f));   // High ambient for brightness
+        _gunShader->setUniformVec3("material.diffuse", glm::vec3(1.5f, 1.5f, 1.5f));   // Very high diffuse
+        _gunShader->setUniformVec3("material.specular", glm::vec3(0.8f, 0.8f, 0.8f));  // Moderate specular for matte finish
+        _gunShader->setUniformVec3("material.color", glm::vec3(0.3f, 0.3f, 0.3f));     // Dark gray/black gun color
+        _gunShader->setUniformFloat("material.shininess", 32.0f);                       // Lower shininess for tactical matte look
+          // Set ambient light (very high for gun visibility in dark areas)
         _gunShader->setUniformVec3("ambientLight.color", glm::vec3(1.0f, 1.0f, 1.0f));
-        _gunShader->setUniformFloat("ambientLight.intensity", 0.3f);        // Set dynamic point lights
-        setPointLightsUniforms(_gunShader.get());
+        _gunShader->setUniformFloat("ambientLight.intensity", 2.4f);                    // Very high ambient light for dark visibility        // Set camera-based dynamic point lights
+        setCameraPointLightsUniforms(_gunShader.get());
         
-        // Set default texture uniforms
+        // Set default directional light (disabled)
+        _gunShader->setUniformVec3("dirLights.direction", glm::vec3(0.0f, -1.0f, 0.0f));
+        _gunShader->setUniformVec3("dirLights.color", glm::vec3(1.0f, 1.0f, 1.0f));
+        _gunShader->setUniformFloat("dirLights.intensity", 0.0f); // Disabled
+        
+        // Set default spotlight (disabled)
+        _gunShader->setUniformVec3("spotLights.position", glm::vec3(0.0f, 0.0f, 0.0f));
+        _gunShader->setUniformVec3("spotLights.direction", glm::vec3(0.0f, -1.0f, 0.0f));
+        _gunShader->setUniformVec3("spotLights.color", glm::vec3(1.0f, 1.0f, 1.0f));
+        _gunShader->setUniformFloat("spotLights.cutOff", cos(glm::radians(12.5f)));
+        _gunShader->setUniformFloat("spotLights.intensity", 0.0f); // Disabled
+        
+        // Set default texture uniforms for entity.frag
         _gunShader->setUniformInt("diffuseTexture", 0);
         _gunShader->setUniformInt("normalTexture", 1);
         
-        // Draw gun with custom material handling
-        bool foundDiffuse = false, foundNormal = false;
+        // Draw gun - force material color display (ignore textures for now)
+        std::cout << "Gun mesh count: " << _gun->getMeshes().size() << std::endl;
         
         for (const auto& mesh : _gun->getMeshes()) {
-            // Find and bind appropriate textures
-            int diffuseSlot = -1, normalSlot = -1;
+            std::cout << "Gun mesh texture count: " << mesh.textures.size() << std::endl;
             
-            for (int i = 0; i < mesh.textures.size(); i++) {
-                const auto& texture = mesh.textures[i];
-                
-                if (texture.type == "texture_diffuse" && !foundDiffuse) {
-                    glActiveTexture(GL_TEXTURE0);
-                    glBindTexture(GL_TEXTURE_2D, texture.id);
-                    diffuseSlot = 0;
-                    foundDiffuse = true;
-                } else if (texture.type == "texture_normal" && !foundNormal) {
-                    glActiveTexture(GL_TEXTURE1);
-                    glBindTexture(GL_TEXTURE_2D, texture.id);
-                    normalSlot = 1;
-                    foundNormal = true;
-                }
-            }
+            // Force disable textures to show material color
+            _gunShader->setUniformBool("useTexture", false);
+            _gunShader->setUniformBool("useNormalTexture", false);
             
-            // Set texture usage flags
-            _gunShader->setUniformBool("useDiffuseTexture", foundDiffuse);
-            _gunShader->setUniformBool("useNormalTexture", foundNormal);
-              // Draw the mesh
+            // Draw the mesh
             glBindVertexArray(mesh.getVAO());
             glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);
@@ -783,12 +793,12 @@ void FinalSceneApp::renderSceneToFramebuffer() {
         static float gunDebugTimer = 0.0f;
         gunDebugTimer += _deltaTime;
         if (gunDebugTimer >= 3.0f) {
+            std::cout << "=== Gun Debug Info ===" << std::endl;
             std::cout << "Gun position: (" << std::fixed << std::setprecision(3) 
                       << gunPosition.x << ", " << gunPosition.y << ", " << gunPosition.z << ")" << std::endl;
             std::cout << "Camera position: (" << std::fixed << std::setprecision(3) 
                       << cameraPos.x << ", " << cameraPos.y << ", " << cameraPos.z << ")" << std::endl;
-            std::cout << "Gun textures found - Diffuse: " << (foundDiffuse ? "Yes" : "No") 
-                      << ", Normal: " << (foundNormal ? "Yes" : "No") << std::endl;
+            std::cout << "Gun: Dark gray tactical appearance with enhanced visibility" << std::endl;
             gunDebugTimer = 0.0f;
         }
     }    // draw mita
@@ -866,27 +876,28 @@ void FinalSceneApp::renderSceneToFramebuffer() {
                 _mitaShader->setUniformMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
             }
             
-            // Debug: Output mita transformation matrix
-            static float mitaDebugTimer = 0.0f;
-            mitaDebugTimer += _deltaTime;
-            if (mitaDebugTimer >= 3.0f) {
-                glm::mat4 mitaMatrix = _animatedMita->transform.getLocalMatrix();
-                std::cout << "Mita transform matrix position: (" 
-                          << mitaMatrix[3][0] << ", " << mitaMatrix[3][1] << ", " << mitaMatrix[3][2] << ")" << std::endl;
-                std::cout << "Mita scale: " << _animatedMita->transform.scale.x << std::endl;
-                mitaDebugTimer = 0.0f;
-            }
+            // TEST: Disable mita transformation debug output
+            // static float mitaDebugTimer = 0.0f;
+            // mitaDebugTimer += _deltaTime;
+            // if (mitaDebugTimer >= 3.0f) {
+            //     glm::mat4 mitaMatrix = _animatedMita->transform.getLocalMatrix();
+            //     std::cout << "Mita transform matrix position: (" 
+            //               << mitaMatrix[3][0] << ", " << mitaMatrix[3][1] << ", " << mitaMatrix[3][2] << ")" << std::endl;
+            //     std::cout << "Mita scale: " << _animatedMita->transform.scale.x << std::endl;
+            //     mitaDebugTimer = 0.0f;
+            // }
             
-            // Debug: Output number of lights being used for mita
-            static float mitaLightCountTimer = 0.0f;
-            mitaLightCountTimer += _deltaTime;
-            if (mitaLightCountTimer >= 2.0f) {
-                std::cout << "Setting " << _mitaPointLights.size() << " point lights to mita shader" << std::endl;
-                mitaLightCountTimer = 0.0f;
-            }
+            // TEST: Disable mita light debug output
+            // static float mitaLightCountTimer = 0.0f;
+            // mitaLightCountTimer += _deltaTime;
+            // if (mitaLightCountTimer >= 2.0f) {
+            //     std::cout << "Setting " << _mitaPointLights.size() << " point lights to mita shader" << std::endl;
+            //     mitaLightCountTimer = 0.0f;
+            // }
             
             _animatedMita->Draw(*_mitaShader);
-            std::cout << "draw mita at" << _animatedMita->transform.position.x << ", " << _animatedMita->transform.position.z << std::endl;
+            // TEST: Disable mita position output to see entity debug info clearly
+            // std::cout << "draw mita at" << _animatedMita->transform.position.x << ", " << _animatedMita->transform.position.z << std::endl;
         }
     }
 }
@@ -1004,26 +1015,25 @@ void FinalSceneApp::updateDynamicPointLights() {
     glm::vec3 entityPos = _animatedEntity->transform.position;
     
     // Convert world position to map coordinates
-    // Map coordinate system: world position = (mapX - 150, y, mapZ - 150)
-    // So: mapX = worldX + 150, mapZ = worldZ + 150
-    int centerMapX = static_cast<int>(entityPos.x + 150);
-    int centerMapZ = static_cast<int>(entityPos.z + 150);
+    // First, map world coordinates to [-150, 150] range (tiled map)
+    float wrappedX = fmod(entityPos.x + 150.0f, 300.0f) - 150.0f;
+    float wrappedZ = fmod(entityPos.z + 150.0f, 300.0f) - 150.0f;
+    if (wrappedX < -150.0f) wrappedX += 300.0f;
+    if (wrappedZ < -150.0f) wrappedZ += 300.0f;
+    
+    // Then convert to array indices [0, 299]
+    int centerMapX = static_cast<int>(wrappedX + 150);
+    int centerMapZ = static_cast<int>(wrappedZ + 150);
+    
+    // Clamp to valid array bounds (should not be needed now, but for safety)
+    centerMapX = std::max(0, std::min(centerMapX, MAP_LENGTH - 1));
+    centerMapZ = std::max(0, std::min(centerMapZ, MAP_LENGTH - 1));
     
     // Define search area (11x11 around entity)
     const int searchRadius = 5; // 11x11 area
     
-    // Debug output for light detection
-    static float lightDebugTimer = 0.0f;
-    lightDebugTimer += _deltaTime;
-    bool shouldDebug = lightDebugTimer >= 3.0f; // Debug every 3 seconds
-    
-    if (shouldDebug) {
-        std::cout << "=== Dynamic Point Lights Debug ===" << std::endl;
-        std::cout << "Entity world position: (" << std::fixed << std::setprecision(1) 
-                  << entityPos.x << ", " << entityPos.y << ", " << entityPos.z << ")" << std::endl;
-        std::cout << "Entity map position: (" << centerMapX << ", " << centerMapZ << ")" << std::endl;
-        lightDebugTimer = 0.0f;
-    }
+    // Debug output disabled for light detection
+    bool shouldDebug = false; // Disable light debug output
     
     // Scan the area around the player
     for (int dx = -searchRadius; dx <= searchRadius; dx++) {
@@ -1034,10 +1044,20 @@ void FinalSceneApp::updateDynamicPointLights() {
             // Check bounds
             if (mapX >= 0 && mapX < MAP_LENGTH && mapZ >= 0 && mapZ < MAP_LENGTH) {
                 // Check if this position has a light (value == 2)
-                if (map[mapZ][mapX] == 2) {
+                if (map[mapX][mapZ] == 2) {
                     // Convert map coordinates back to world coordinates
-                    float worldX = static_cast<float>(mapX) - 150.0f;
-                    float worldZ = static_cast<float>(mapZ) - 150.0f;
+                    // First get the standard map coordinate
+                    float standardWorldX = static_cast<float>(mapX) - 150.0f;
+                    float standardWorldZ = static_cast<float>(mapZ) - 150.0f;
+                    
+                    // Then adjust to the same "tile" as the entity
+                    // Calculate which 300x300 tile the entity is in
+                    int entityTileX = static_cast<int>(floor((entityPos.x + 150.0f) / 300.0f));
+                    int entityTileZ = static_cast<int>(floor((entityPos.z + 150.0f) / 300.0f));
+                    
+                    // Place light in the same tile as the entity
+                    float worldX = standardWorldX + entityTileX * 300.0f;
+                    float worldZ = standardWorldZ + entityTileZ * 300.0f;
                     float worldY = 3.0f; // Height as specified
                     
                     // Create point light at this position
@@ -1074,26 +1094,25 @@ void FinalSceneApp::updateMitaPointLights() {
     glm::vec3 mitaPos = _animatedMita->transform.position;
     
     // Convert world position to map coordinates
-    // Map coordinate system: world position = (mapX - 150, y, mapZ - 150)
-    // So: mapX = worldX + 150, mapZ = worldZ + 150
-    int centerMapX = static_cast<int>(mitaPos.x + 150);
-    int centerMapZ = static_cast<int>(mitaPos.z + 150);
+    // First, map world coordinates to [-150, 150] range (tiled map)
+    float wrappedX = fmod(mitaPos.x + 150.0f, 300.0f) - 150.0f;
+    float wrappedZ = fmod(mitaPos.z + 150.0f, 300.0f) - 150.0f;
+    if (wrappedX < -150.0f) wrappedX += 300.0f;
+    if (wrappedZ < -150.0f) wrappedZ += 300.0f;
+    
+    // Then convert to array indices [0, 299]
+    int centerMapX = static_cast<int>(wrappedX + 150);
+    int centerMapZ = static_cast<int>(wrappedZ + 150);
+    
+    // Clamp to valid array bounds (should not be needed now, but for safety)
+    centerMapX = std::max(0, std::min(centerMapX, MAP_LENGTH - 1));
+    centerMapZ = std::max(0, std::min(centerMapZ, MAP_LENGTH - 1));
     
     // Define search area (11x11 around mita)
     const int searchRadius = 5; // 11x11 area
     
-    // Debug output for light detection
-    static float lightDebugTimer = 0.0f;
-    lightDebugTimer += _deltaTime;
-    bool shouldDebug = lightDebugTimer >= 3.0f; // Debug every 3 seconds
-    
-    if (shouldDebug) {
-        std::cout << "=== Mita Point Lights Debug ===" << std::endl;
-        std::cout << "Mita world position: (" << std::fixed << std::setprecision(1) 
-                  << mitaPos.x << ", " << mitaPos.y << ", " << mitaPos.z << ")" << std::endl;
-        std::cout << "Mita map position: (" << centerMapX << ", " << centerMapZ << ")" << std::endl;
-        lightDebugTimer = 0.0f;
-    }
+    // Debug output disabled for mita light detection
+    bool shouldDebug = false; // Disable mita light debug output
     
     // Scan the area around the mita
     for (int dx = -searchRadius; dx <= searchRadius; dx++) {
@@ -1104,10 +1123,20 @@ void FinalSceneApp::updateMitaPointLights() {
             // Check bounds
             if (mapX >= 0 && mapX < MAP_LENGTH && mapZ >= 0 && mapZ < MAP_LENGTH) {
                 // Check if this position has a light (value == 2)
-                if (map[mapZ][mapX] == 2) {
+                if (map[mapX][mapZ] == 2) {
                     // Convert map coordinates back to world coordinates
-                    float worldX = static_cast<float>(mapX) - 150.0f;
-                    float worldZ = static_cast<float>(mapZ) - 150.0f;
+                    // First get the standard map coordinate
+                    float standardWorldX = static_cast<float>(mapX) - 150.0f;
+                    float standardWorldZ = static_cast<float>(mapZ) - 150.0f;
+                    
+                    // Then adjust to the same "tile" as the mita
+                    // Calculate which 300x300 tile the mita is in
+                    int mitaTileX = static_cast<int>(floor((mitaPos.x + 150.0f) / 300.0f));
+                    int mitaTileZ = static_cast<int>(floor((mitaPos.z + 150.0f) / 300.0f));
+                    
+                    // Place light in the same tile as the mita
+                    float worldX = standardWorldX + mitaTileX * 300.0f;
+                    float worldZ = standardWorldZ + mitaTileZ * 300.0f;
                     float worldY = 3.0f; // Height as specified
                     
                     // Create point light at this position
@@ -1133,6 +1162,12 @@ void FinalSceneApp::updateMitaPointLights() {
     
     if (shouldDebug) {
         std::cout << "Total mita point lights: " << _mitaPointLights.size() << std::endl;
+        for (int i = 0; i < _mitaPointLights.size(); i++) {
+            const auto& light = _mitaPointLights[i];
+            std::cout << "  Mita Light " << i << ": world(" << std::fixed << std::setprecision(1)
+                      << light.position.x << ", " << light.position.y << ", " << light.position.z 
+                      << ") intensity=" << light.intensity << std::endl;
+        }
     }
 }
 
@@ -1336,5 +1371,141 @@ void FinalSceneApp::switchMitaAnimation(int animationIndex) {
         _currentMitaAnimationIndex = animationIndex;
         _mitaAnimator->PlayAnimation(_mitaAnimations[animationIndex].get());
         std::cout << "Switched mita to animation " << animationIndex << std::endl;
+    }
+}
+
+void FinalSceneApp::updateCameraPointLights() {
+    // Clear existing camera point lights
+    _cameraPointLights.clear();
+    
+    // Get current camera position in world coordinates
+    glm::vec3 cameraPos = _camera->transform.position;
+    
+    // Convert world position to map coordinates
+    // First, map world coordinates to [-150, 150] range (tiled map)
+    float wrappedX = fmod(cameraPos.x + 150.0f, 300.0f) - 150.0f;
+    float wrappedZ = fmod(cameraPos.z + 150.0f, 300.0f) - 150.0f;
+    if (wrappedX < -150.0f) wrappedX += 300.0f;
+    if (wrappedZ < -150.0f) wrappedZ += 300.0f;
+    
+    // Then convert to array indices [0, 299]
+    int centerMapX = static_cast<int>(wrappedX + 150);
+    int centerMapZ = static_cast<int>(wrappedZ + 150);
+    
+    // Clamp to valid array bounds (should not be needed now, but for safety)
+    centerMapX = std::max(0, std::min(centerMapX, MAP_LENGTH - 1));
+    centerMapZ = std::max(0, std::min(centerMapZ, MAP_LENGTH - 1));
+    
+    // Define search area (11x11 around camera)
+    const int searchRadius = 5; // 11x11 area
+    
+    // Debug output disabled for camera light detection
+    bool shouldDebug = false; // Disable camera light debug output
+    
+    if (shouldDebug) {
+        std::cout << "=== Camera Point Lights Debug ===" << std::endl;
+        std::cout << "Camera world position: (" << std::fixed << std::setprecision(1) 
+                  << cameraPos.x << ", " << cameraPos.y << ", " << cameraPos.z << ")" << std::endl;
+        std::cout << "Camera wrapped position: (" << std::fixed << std::setprecision(1) 
+                  << wrappedX << ", " << cameraPos.y << ", " << wrappedZ << ")" << std::endl;
+        std::cout << "Camera map position: (" << centerMapX << ", " << centerMapZ << ")" << std::endl;
+        std::cout << "Search area: map(" << (centerMapX - searchRadius) << "," << (centerMapZ - searchRadius) 
+                  << ") to map(" << (centerMapX + searchRadius) << "," << (centerMapZ + searchRadius) << ")" << std::endl;
+        
+        // Print 11x11 map grid
+        std::cout << "11x11 Map grid around camera:" << std::endl;
+        std::cout << "   ";
+        for (int dx = -searchRadius; dx <= searchRadius; dx++) {
+            std::cout << std::setw(2) << (centerMapX + dx) % 100 << " ";
+        }
+        std::cout << std::endl;
+        
+        for (int dz = -searchRadius; dz <= searchRadius; dz++) {
+            int mapZ = centerMapZ + dz;
+            std::cout << std::setw(2) << mapZ % 100 << ":";
+            for (int dx = -searchRadius; dx <= searchRadius; dx++) {
+                int mapX = centerMapX + dx;
+                if (mapX >= 0 && mapX < MAP_LENGTH && mapZ >= 0 && mapZ < MAP_LENGTH) {
+                    std::cout << std::setw(2) << static_cast<int>(map[mapX][mapZ]) << " ";
+                } else {
+                    std::cout << " X ";
+                }
+            }
+            std::cout << std::endl;
+        }
+        
+        // lightDebugTimer = 0.0f;
+    }
+    
+    // Scan the area around the camera
+    for (int dx = -searchRadius; dx <= searchRadius; dx++) {
+        for (int dz = -searchRadius; dz <= searchRadius; dz++) {
+            int mapX = centerMapX + dx;
+            int mapZ = centerMapZ + dz;
+            
+            // Check bounds
+            if (mapX >= 0 && mapX < MAP_LENGTH && mapZ >= 0 && mapZ < MAP_LENGTH) {
+                // Check if this position has a light (value == 2)
+                if (map[mapX][mapZ] == 2) {
+                    // Convert map coordinates back to world coordinates
+                    // First get the standard map coordinate
+                    float standardWorldX = static_cast<float>(mapX) - 150.0f;
+                    float standardWorldZ = static_cast<float>(mapZ) - 150.0f;
+                    
+                    // Then adjust to the same "tile" as the camera
+                    // Calculate which 300x300 tile the camera is in
+                    int cameraTileX = static_cast<int>(floor((cameraPos.x + 150.0f) / 300.0f));
+                    int cameraTileZ = static_cast<int>(floor((cameraPos.z + 150.0f) / 300.0f));
+                    
+                    // Place light in the same tile as the camera
+                    float worldX = standardWorldX + cameraTileX * 300.0f;
+                    float worldZ = standardWorldZ + cameraTileZ * 300.0f;
+                    float worldY = 3.0f; // Height as specified
+                    
+                    // Create point light at this position
+                    glm::vec3 lightPos(worldX, worldY, worldZ);
+                    _cameraPointLights.emplace_back(lightPos, glm::vec3(1.0f, 1.0f, 0.9f), 2.0f);
+                    
+                    if (shouldDebug) {
+                        std::cout << "Found light at map(" << mapX << ", " << mapZ << ") -> world(" 
+                                  << worldX << ", " << worldY << ", " << worldZ << ")" << std::endl;
+                    }
+                    
+                    // Limit number of lights to prevent performance issues
+                    if (_cameraPointLights.size() >= MAX_POINT_LIGHTS) {
+                        if (shouldDebug) {
+                            std::cout << "Reached maximum point lights limit for camera: " << MAX_POINT_LIGHTS << std::endl;
+                        }
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    
+    if (shouldDebug) {
+        std::cout << "Total camera point lights: " << _cameraPointLights.size() << std::endl;
+        for (int i = 0; i < _cameraPointLights.size(); i++) {
+            const auto& light = _cameraPointLights[i];
+            std::cout << "  Camera Light " << i << ": world(" << std::fixed << std::setprecision(1)
+                      << light.position.x << ", " << light.position.y << ", " << light.position.z 
+                      << ") intensity=" << light.intensity << std::endl;
+        }
+    }
+}
+
+void FinalSceneApp::setCameraPointLightsUniforms(GLSLProgram* shader) {
+    // Set number of point lights for camera
+    int numLights = static_cast<int>(std::min(_cameraPointLights.size(), static_cast<size_t>(MAX_POINT_LIGHTS)));
+    shader->setUniformInt("numPointLights", numLights);
+    
+    // Set each point light's properties
+    for (int i = 0; i < numLights; i++) {
+        const auto& light = _cameraPointLights[i];
+        
+        std::string baseName = "pointLights[" + std::to_string(i) + "]";
+        shader->setUniformVec3(baseName + ".position", light.position);
+        shader->setUniformVec3(baseName + ".color", light.color);
+        shader->setUniformFloat(baseName + ".intensity", light.intensity);
     }
 }

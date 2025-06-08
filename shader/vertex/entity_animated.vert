@@ -11,6 +11,7 @@ layout(location = 6) in vec4 aWeights;
 out vec3 worldPosition;
 out vec3 normal;
 out vec2 texCoord;
+out mat3 TBN;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -24,6 +25,8 @@ uniform mat4 finalBonesMatrices[MAX_BONES];
 void main() {
     vec4 totalPosition = vec4(0.0f);
     vec3 totalNormal = vec3(0.0f);
+    vec3 totalTangent = vec3(0.0f);
+    vec3 totalBitangent = vec3(0.0f);
     float totalWeight = 0.0f;
     bool hasBoneInfluence = false;
     
@@ -43,6 +46,12 @@ void main() {
         vec3 localNormal = mat3(finalBonesMatrices[aBoneIds[i]]) * aNormal;
         totalNormal += localNormal * aWeights[i];
         
+        vec3 localTangent = mat3(finalBonesMatrices[aBoneIds[i]]) * aTangent;
+        totalTangent += localTangent * aWeights[i];
+        
+        vec3 localBitangent = mat3(finalBonesMatrices[aBoneIds[i]]) * aBitangent;
+        totalBitangent += localBitangent * aWeights[i];
+        
         totalWeight += aWeights[i];
     }
     
@@ -50,17 +59,28 @@ void main() {
     if (!hasBoneInfluence || totalWeight < 0.01f) {
         totalPosition = vec4(aPosition, 1.0f);
         totalNormal = aNormal;
+        totalTangent = aTangent;
+        totalBitangent = aBitangent;
     } else {
         // Normalize by total weight to handle cases where weights don't sum to exactly 1
         totalPosition /= totalWeight;
         totalNormal /= totalWeight;
+        totalTangent /= totalWeight;
+        totalBitangent /= totalWeight;
     }
     
     // Transform vertex position to world space
     worldPosition = vec3(model * totalPosition);
     
     // Transform normal to world space (using normal matrix to handle non-uniform scaling)
-    normal = mat3(transpose(inverse(model))) * normalize(totalNormal);
+    mat3 normalMatrix = mat3(transpose(inverse(model)));
+    normal = normalMatrix * normalize(totalNormal);
+    
+    // Calculate TBN matrix for normal mapping
+    vec3 T = normalize(normalMatrix * totalTangent);
+    vec3 B = normalize(normalMatrix * totalBitangent);
+    vec3 N = normalize(normal);
+    TBN = mat3(T, B, N);
     
     // Pass through texture coordinates
     texCoord = aTexCoord;
