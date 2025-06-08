@@ -16,6 +16,7 @@
 #include "dialog.hpp"
 #include "interface.hpp"
 #include "map.hpp"
+#include "audioManager.hpp"
 
 class FinalSceneApp : public Application {
 
@@ -77,8 +78,10 @@ private:
     // Dynamic point light management
     void updateDynamicPointLights();
     void updateMitaPointLights();
+    void updateCameraPointLights();
     void setPointLightsUniforms(GLSLProgram* shader);
     void setMitaPointLightsUniforms(GLSLProgram* shader);
+    void setCameraPointLightsUniforms(GLSLProgram* shader);
     
     // Animation system methods
     void initAnimatedModels();
@@ -155,6 +158,7 @@ private:
 
     // Dynamic point lights
     std::vector<DynamicPointLight> _dynamicPointLights;    std::vector<DynamicPointLight> _mitaPointLights;
+    std::vector<DynamicPointLight> _cameraPointLights;
     static const int MAX_POINT_LIGHTS = 32;
 
     EntityLogic _entityLogic;
@@ -166,6 +170,9 @@ private:
     std::unique_ptr<Interface> startInterface, loseInterface, winInterface;
 
     std::unique_ptr<SkyBox> _skybox;
+
+    // audiomanager
+    std::unique_ptr<AudioManager> _audioManager;
 
     // Time management for frame-rate independent movement
     std::chrono::time_point<std::chrono::high_resolution_clock> _lastFrameTime;

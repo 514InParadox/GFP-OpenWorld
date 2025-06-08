@@ -84,7 +84,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 worldPos, vec3 viewDir) 
     
     // Enhanced distance-based attenuation for better light falloff
     float distance = length(light.position - worldPos);
-    float attenuation = 1.0 / (1.0 + 0.35 * distance + 0.44 * distance * distance);
+    float attenuation = 1.0 / (1.0 + 0.7 * distance + 1.8 * distance * distance);
     
     return light.intensity * attenuation * (diffuse + specular);
 }

@@ -6,6 +6,7 @@
 in vec3 worldPosition;
 in vec3 normal;
 in vec2 texCoord;
+in mat3 TBN;
 
 // --- Output ---
 out vec4 fragColor;
@@ -62,7 +63,9 @@ uniform vec3 viewPosition;  // Camera position in world space
 
 // Optional texture support
 uniform sampler2D diffuseTexture;
+uniform sampler2D normalTexture;
 uniform bool useTexture = false;
+uniform bool useNormalTexture = false;
 
 // --- Lighting calculation functions ---
 
@@ -80,7 +83,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 worldPos, vec3 viewDir) 
     
     // Enhanced distance-based attenuation for better light falloff
     float distance = length(light.position - worldPos);
-    float attenuation = 1.0 / (1.0 + 0.35 * distance + 0.44 * distance * distance);
+    float attenuation = 1.0 / (1.0 + 0.7 * distance + 1.8 * distance * distance + distance * distance * distance);
     
     return light.intensity * attenuation * (diffuse + specular);
 }
@@ -131,8 +134,18 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 worldPos, vec3 viewDir) {
 }
 
 void main() {
-    // Normalize the interpolated normal
-    vec3 norm = normalize(normal);
+    // Get normal from normal map or use vertex normal
+    vec3 norm;
+    if (useNormalTexture) {
+        // Sample normal from normal map and transform to [-1, 1] range
+        vec3 normalMap = texture(normalTexture, texCoord).rgb * 2.0 - 1.0;
+        // Transform normal from tangent space to world space using TBN matrix
+        norm = normalize(TBN * normalMap);
+    } else {
+        // Use vertex normal
+        norm = normalize(normal);
+    }
+    
     vec3 viewDir = normalize(viewPosition - worldPosition);
     
     // Get base color (from texture or material color)

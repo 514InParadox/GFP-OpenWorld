@@ -33,6 +33,7 @@ public:
 
     EntityStatus getStatus() { return Status; }
 
+
 private:
     // Time tracking variables
     float _timeSinceStatusZero = 0.0f; // Time since status became PATROL
