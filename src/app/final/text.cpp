@@ -1,5 +1,8 @@
 #include "text.hpp"
 
+//Text::Text(std::unique_ptr<AdvancedModel> model)
+//    :_text(std::move(model)), _remainingLifeTime(0.0f){}
+
 void Text::setLifeTime(const float &lifeTime) {
     _remainingLifeTime = lifeTime;
 }
@@ -12,15 +15,9 @@ bool Text::Life(const float &deltaTime) {
     return _remainingLifeTime > 0.0f;
 }
 
-//void Text::draw() {
+void Text::draw() {
     // 绘制文本模型
-//    if (_text) {
-//        _text->draw();
-//    }
-//}
-void Test::draw(GLSLProgram &shader) {
-    if(_text) {
-        shader.setUniformMat4("model", _text->transform.getLocalMatrix());
+    if (_text) {
         _text->draw();
     }
 }

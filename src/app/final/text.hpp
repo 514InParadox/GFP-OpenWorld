@@ -1,11 +1,12 @@
 #pragma once
 
 #include "model/advancedModel.hpp"
-#include "utils/glsl_program.hpp"
+//#include "utils/glsl_program.hpp"
 
 class Text {
 public:
     Text(std::unique_ptr<AdvancedModel> text) : _text(std::move(text)) {}
+    //explicit Text(std::unique_ptr<AdvancedModel> model);
 
     // update lifetime, return false if should be destroyed
     void setLifeTime(const float &lifeTime);
@@ -13,8 +14,8 @@ public:
     bool Life(const float &deltaTime);
 
     // draw the model, using text shader
-    // void draw();
-    void draw(GLSLProgram &shader);
+    void draw();
+    //void draw(GLSLProgram &shader);
 private:
     std::unique_ptr<AdvancedModel> _text;
     float _remainingLifeTime;

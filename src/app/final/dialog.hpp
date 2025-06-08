@@ -1,7 +1,6 @@
 #pragma once
 
 #include "text.hpp"
-#include "utils/glsl_program.hpp"
 #include <string>
 #include <vector>
 #include <memory>
@@ -23,20 +22,16 @@ public:
 
     void proceed(const float &deltaTime);
 
-    void start();
     
     // Check if all dialogs have been displayed
     bool isFinished() const;
 
-    void draw(const float &deltaTime, GLSLProgram &shader);
     
     // Draw current dialog texts
-    //void drawDialogBox() const;
-    void drawDialogBox(GLSLProgram &shader) const;
+    void drawDialogBox() const;
     
     // Draw fading out texts
-    //void drawDropText() const;
-    void drawDropText(GLSLProgram &shader) const;
+    void drawDropText() const;
     
     // Get current dialog info
     size_t getCurrentDialogIndex() const;

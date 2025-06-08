@@ -150,38 +150,22 @@ void Dialog::updateTextLifetimes(const float &deltaTime) {
     }
 }
 
-//void Dialog::drawDialogBox() const {
+void Dialog::drawDialogBox() const {
     // 绘制当前对话框中的所有文本
-void Dialog::start() {
-    if (!_started && !preLoad.empty()) {
-        _started = true;
-        nextDialog();
-        }
-    }
-    
-void Dialog::drawDialogBox(GLSLProgram &shader) const {
     for (const auto& text : dialogBox) {
         if (text) {
-            //text->draw();
-            text->draw(shader);
+            text->draw();
         }
     }
 }
 
-//void Dialog::drawDropText() const {
-void Diglog::drawDropText(GLSLProgram &shader) const{
+void Dialog::drawDropText() const {
     // 绘制正在淡出的文本
     for (const auto& text : dropText) {
         if (text) {
-            //text->draw();
-            text->draw(shader);
+            text->draw();
         }
     }
-}
-void Dialog::draw(const float &deltaTime, GLSLProgram &shader){
-    proceed(deltaTime);
-    drawDialogBox(shader);
-    drawDropText(shader);
 }
 
 size_t Dialog::getCurrentDialogIndex() const {
