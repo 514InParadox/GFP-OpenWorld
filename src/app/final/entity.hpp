@@ -48,7 +48,7 @@ private:
     mutable std::mt19937 _gen{_rd()};
     
     // Constants
-    static constexpr float AUTO_RELOCATE_TIMEOUT = 30.0f; // 30 seconds timeout for auto-relocation
+    static constexpr float AUTO_RELOCATE_TIMEOUT = 10.0f; // 30 seconds timeout for auto-relocation
     static constexpr float RANDOM_PLACE_MIN_RADIUS = 10.0f; // Minimum distance from player
     static constexpr float RANDOM_PLACE_MAX_RADIUS = 40.0f; // Maximum distance from player
     static constexpr int MAX_PLACEMENT_ATTEMPTS = 100; // Maximum attempts to find valid position

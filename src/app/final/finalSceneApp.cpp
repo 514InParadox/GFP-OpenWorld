@@ -323,17 +323,17 @@ void FinalSceneApp::updateState() {
             mitaPos = glm::vec2(_animatedMita->transform.position.x, _animatedMita->transform.position.z);
             if (distance(mitaPos, playerPosition) < MitaTriggleDist) {
                 gameState = GameState::DuringMita;
-                during_debug_remain_time = 5;
-                // _dialog.Start();
+                if (_dialog) {
+                    _dialog->resetDialog();
+                    glm::vec3 dialogPos = _animatedMita->transform.position + glm::vec3(0.0f, 1.8f, 0.0f);
+                    _dialog->setBasePosition(dialogPos);
+                }
             }
             break;
         case GameState::DuringMita:
-            // _dialog->proceed(_deltaTime);
-            // if (_dialog->isFinished()) {
-            if (during_debug_remain_time > 0) {
-                during_debug_remain_time -= _deltaTime;
-            } else {
+        if (true || _dialog && _dialog->isFinished()) {
                 _entityLogic.setEntityPos(glm::vec2(10.0f, -10.0f));
+                _entityLogic.Status = EntityStatus::PATROL;
                 gameState = GameState::AfterMita;
             }
             break;
@@ -793,9 +793,7 @@ void FinalSceneApp::renderSceneToFramebuffer() {
         if (_animatedMita && _mitaAnimator) {
             _mitaShader->use();
             _mitaShader->setUniformMat4("projection", projection);
-            _mitaShader->setUniformMat4("view", view);
-            
-            // Make mita face towards player (camera position)
+            _mitaShader->setUniformMat4("view", view);            // Make mita face towards player (camera position) with smooth rotation
             glm::vec3 playerPosition = _camera->transform.position;
             glm::vec3 mitaToPlayer = playerPosition - _animatedMita->transform.position;
             
@@ -804,9 +802,40 @@ void FinalSceneApp::renderSceneToFramebuffer() {
                 mitaToPlayer.y = 0.0f; // Remove vertical component for Y-axis only rotation
                 mitaToPlayer = glm::normalize(mitaToPlayer);
                 
-                // Calculate rotation to face player
-                float angle = atan2(mitaToPlayer.x, mitaToPlayer.z); // Calculate Y-axis rotation angle
-                _animatedMita->transform.rotation = glm::angleAxis(angle, glm::vec3(0.0f, 1.0f, 0.0f));
+                // Calculate target angle to face player
+                float targetAngle = atan2(mitaToPlayer.x, mitaToPlayer.z); // Calculate Y-axis rotation angle
+                
+                // Use static variable to maintain smooth rotation state
+                static float currentMitaAngle = 0.0f;
+                static bool mitaAngleInitialized = false;
+                
+                // Initialize the angle on first run
+                if (!mitaAngleInitialized) {
+                    glm::vec3 currentForward = _animatedMita->transform.getFront();
+                    currentForward.y = 0.0f; // Remove vertical component
+                    if (glm::length(currentForward) > 0.001f) {
+                        currentForward = glm::normalize(currentForward);
+                        currentMitaAngle = atan2(currentForward.x, currentForward.z);
+                    } else {
+                        currentMitaAngle = targetAngle; // Fallback to target angle
+                    }
+                    mitaAngleInitialized = true;
+                }
+                
+                // Handle angle wrapping to ensure shortest path rotation
+                float angleDiff = targetAngle - currentMitaAngle;
+                if (angleDiff > glm::pi<float>()) {
+                    angleDiff -= 2.0f * glm::pi<float>();
+                }
+                if (angleDiff < -glm::pi<float>()) {
+                    angleDiff += 2.0f * glm::pi<float>();
+                }
+                
+                // Smooth interpolation with exponential decay
+                currentMitaAngle += angleDiff * 0.1f; // Slower interpolation (10% per frame)
+                
+                // Apply the rotation
+                _animatedMita->transform.rotation = glm::angleAxis(currentMitaAngle, glm::vec3(0.0f, 1.0f, 0.0f));
             }
             
             _mitaShader->setUniformMat4("model", _animatedMita->transform.getLocalMatrix());

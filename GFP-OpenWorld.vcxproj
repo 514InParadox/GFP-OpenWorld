@@ -157,6 +157,7 @@
     <ClCompile Include="src\app\minimalAudioTestApp.cpp" />
     <ClCompile Include="src\app\final\entity.cpp" />
     <ClCompile Include="src\app\final\dialog.cpp" />
+    <ClCompile Include="src\app\final\dialog_example.cpp" />
     <ClCompile Include="src\app\final\finalSceneApp.cpp" />
     <ClCompile Include="src\app\final\interface.cpp" />
     <ClCompile Include="src\app\final\map.cpp" />

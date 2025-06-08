@@ -85,4 +85,5 @@ extern const std::string startInterfaceImageAddr;
 extern const std::string loseInterfaceImageAddr;
 extern const std::string winInterfaceImageAddr;
 
-extern const std::string dialogAssertPath;
+// 路径：resource/text/
+extern const std::string dialogAssetPath;

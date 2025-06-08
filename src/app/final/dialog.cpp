@@ -3,61 +3,46 @@
 #include <filesystem>
 #include <algorithm>
 
-// 读入文件时，读入的是 assetPath + std::to_string(i) + "-" + std::to_string(j) + ".obj"
-// 将其读入之后，存储在 preLoad 中，准备对话时一句句输出到 dialogBox 中。
+// 按照 "Text_XXX.obj" 的顺序读取文件
+// 读入后存入 preLoad，依次在对话框中显示
 Dialog::Dialog(const std::string &assetPath, const DialogConfig& config) 
     : _config(config), _currentDialogTime(0.0f), _currentDialogIndex(0), 
       _started(false), _paused(false), _totalDialogGroups(0) {
     
-    // 扫描对话文件，按照命名规则 i-j.obj 加载
-    int dialogGroupIndex = 0;
-    
+
+    // 按照 Text_001.obj 等文件依次加载对话
+    int textNumber = 1;
     while (true) {
-        std::vector<std::unique_ptr<Text>> dialogGroup;
-        int textIndex = 0;
-        bool foundAnyInGroup = false;
-        
-        // 尝试加载当前对话组的所有文本片段
-        while (true) {
-            std::string filename = assetPath + std::to_string(dialogGroupIndex) + "-" + std::to_string(textIndex) + ".obj";
-            
-            // 检查文件是否存在
-            if (std::filesystem::exists(filename)) {
-                try {
-                    // 创建AdvancedModel并包装为Text
-                    auto model = std::make_unique<AdvancedModel>(filename);
-                    auto text = std::make_unique<Text>(std::move(model));
-                    dialogGroup.push_back(std::move(text));
-                    
-                    foundAnyInGroup = true;
-                    std::cout << "Loaded dialog file: " << filename << std::endl;
-                } catch (const std::exception& e) {
-                    std::cerr << "Failed to load dialog file " << filename << ": " << e.what() << std::endl;
-                }
-                textIndex++;
-            } else {
-                // 当前组没有更多文本了
-                break;
+        char nameBuf[16];
+        std::snprintf(nameBuf, sizeof(nameBuf), "Text_%03d.obj", textNumber);
+        std::string filename = assetPath + nameBuf;
+
+        if (std::filesystem::exists(filename)) {
+            try {
+                auto model = std::make_unique<AdvancedModel>(filename);
+                auto text = std::make_unique<Text>(std::move(model));
+                // Rotate text upright so it's visible in first-person view
+                text->getTransform().rotation =
+                    glm::angleAxis(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+                std::vector<std::unique_ptr<Text>> dialogGroup;
+                dialogGroup.push_back(std::move(text));
+                preLoad.push_back(std::move(dialogGroup));
+
+                // 记录文件名以便 reset 重新加载
+                _dialogFiles.push_back(filename);
+
+                float groupTime = _config.baseDisplayTime + _config.timePerText;
+                continueTime.push_back(groupTime);
+
+                std::cout << "Loaded dialog file: " << filename << std::endl;
+            } catch (const std::exception& e) {
+                std::cerr << "Failed to load dialog file " << filename << ": " << e.what() << std::endl;
             }
-        }
-        
-        // 如果这个对话组找到了文本，添加到preLoad中
-        if (foundAnyInGroup) {
-            preLoad.push_back(std::move(dialogGroup));
-              // 为每个对话组设置默认持续时间（可以根据需要调整）
-            // 基础时间 + 文本数量 * 额外时间
-            float groupTime = _config.baseDisplayTime + (textIndex * _config.timePerText);
-            continueTime.push_back(groupTime);
-            
-            std::cout << "Loaded dialog group " << dialogGroupIndex 
-                      << " with " << textIndex << " texts, duration: " << groupTime << "s" << std::endl;
-            
-            dialogGroupIndex++;
+            ++textNumber;
         } else {
-            // 没有找到这个索引的对话组，停止搜索
-            break;        }
-    }
-    
+            break;        
+        }
+    }  
     _totalDialogGroups = preLoad.size();
     std::cout << "Dialog system initialized with " << _totalDialogGroups << " dialog groups" << std::endl;
 }
@@ -93,6 +78,11 @@ void Dialog::proceed(const float &deltaTime) {
 }
 
 bool Dialog::isFinished() const {
+    // 若没有成功加载任何对话，则视为已结束，避免外部循环进入死循环
+    if (_totalDialogGroups == 0) {
+        return true;
+    }
+
     return _started && preLoad.empty() && dialogBox.empty() && dropText.empty();
 }
 
@@ -108,6 +98,11 @@ bool Dialog::nextDialog() {
     float currentGroupTime = continueTime[_currentDialogIndex];
     for (auto& text : dialogBox) {
         text->setLifeTime(currentGroupTime + _config.fadeOutTime); // 使用配置的淡出时间
+        // 设置文本位置到基准位置
+        text->getTransform().position = _basePosition;
+        // 确保文本竖直显示
+        text->getTransform().rotation =
+            glm::angleAxis(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     }
     
     // 重置当前对话计时器
@@ -150,35 +145,27 @@ void Dialog::updateTextLifetimes(const float &deltaTime) {
     }
 }
 
-//void Dialog::drawDialogBox() const {
+void Dialog::drawDialogBox(GLSLProgram* shader) const {
     // 绘制当前对话框中的所有文本
-void Dialog::start() {
-    if (!_started && !preLoad.empty()) {
-        _started = true;
-        nextDialog();
-        }
-    }
-    
-void Dialog::drawDialogBox(GLSLProgram &shader) const {
     for (const auto& text : dialogBox) {
-        if (text) {
-            //text->draw();
-            text->draw(shader);
+        if (text && shader) {
+            shader->setUniformMat4("model", text->getModelMatrix());
+            text->draw();
         }
     }
 }
 
-//void Dialog::drawDropText() const {
-void Dialog::drawDropText(GLSLProgram &shader) const{
+void Dialog::drawDropText(GLSLProgram* shader) const {
     // 绘制正在淡出的文本
     for (const auto& text : dropText) {
-        if (text) {
-            //text->draw();
-            text->draw(shader);
+        if (text && shader) {
+            shader->setUniformMat4("model", text->getModelMatrix());
+            text->draw();
         }
     }
 }
-void Dialog::draw(const float &deltaTime, GLSLProgram &shader){
+
+void Dialog::draw(const float &deltaTime, GLSLProgram* shader) {
     proceed(deltaTime);
     drawDialogBox(shader);
     drawDropText(shader);
@@ -221,6 +208,29 @@ void Dialog::resetDialog() {
     // 清空当前对话和淡出文本
     dialogBox.clear();
     dropText.clear();
+
+    preLoad.clear();
+    continueTime.clear();
+
+    // 根据记录的文件重新加载文本
+    for (const auto& file : _dialogFiles) {
+        try {
+            auto model = std::make_unique<AdvancedModel>(file);
+            auto text = std::make_unique<Text>(std::move(model));
+            text->getTransform().position = _basePosition;
+
+            std::vector<std::unique_ptr<Text>> group;
+            group.push_back(std::move(text));
+            preLoad.push_back(std::move(group));
+
+            float groupTime = _config.baseDisplayTime + _config.timePerText;
+            continueTime.push_back(groupTime);
+        } catch (const std::exception& e) {
+            std::cerr << "Failed to reload dialog file " << file << ": " << e.what() << std::endl;
+        }
+    }
+
+    _totalDialogGroups = preLoad.size();
     
     // 重新加载对话（如果需要的话，这里假设preLoad已经被移动，需要重新构建）
     // 注意：这种实现假设对话数据仍然可用，实际实现可能需要重新加载文件
@@ -244,4 +254,20 @@ void Dialog::setConfig(const DialogConfig& config) {
 
 const DialogConfig& Dialog::getConfig() const {
     return _config;
+}
+
+void Dialog::setBasePosition(const glm::vec3& pos) {
+    _basePosition = pos;
+
+    // 更新当前所有文本的位置
+    for (auto& text : dialogBox) {
+        text->getTransform().position = _basePosition;
+    }
+    for (auto& text : dropText) {
+        text->getTransform().position = _basePosition;
+    }
+}
+
+glm::vec3 Dialog::getBasePosition() const {
+    return _basePosition;
 }
