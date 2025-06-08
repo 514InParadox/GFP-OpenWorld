@@ -30,7 +30,7 @@
 
 Options getOptions(int argc, char* argv[]) {
     Options options;
-    options.windowTitle = "Physics Test App";
+    options.windowTitle = "The world's best game!!!!!";
     options.windowWidth = 1920;
     options.windowHeight = 1080;
     options.windowResizable = false;

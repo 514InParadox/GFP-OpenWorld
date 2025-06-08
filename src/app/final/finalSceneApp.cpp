@@ -87,8 +87,8 @@ void FinalSceneApp::handleInput() {
         case GameState::StartInterface:
             if (_input.keyboard.keyStates[GLFW_KEY_ENTER] != GLFW_RELEASE) {
                 gameState = GameState::BeforeMita;
-                // playerPosition = glm::vec2(playerCoord.first - 150, playerCoord.second - 150);
-                playerPosition = glm::vec2(-242, -160);
+                playerPosition = glm::vec2(playerCoord.first - 150, playerCoord.second - 150);
+                // playerPosition = glm::vec2(-242, -160);
                 _entityLogic.setEntityPos(glm::vec2(0.0f, 0.0f));
                 _entityLogic.Status = EntityStatus::PATROL;
             }
@@ -175,11 +175,16 @@ void FinalSceneApp::handleInput() {
         
         // Get entity's world-space AABB
         BoundingBox entityAABB = _animatedEntity->getBoundingBox();
-        entityAABB.transform(_animatedEntity->transform.getLocalMatrix());
-        
-        // Check ray-AABB intersection
+        entityAABB.transform(_animatedEntity->transform.getLocalMatrix());        // Check ray-AABB intersection
         if (rayIntersectsAABB(rayOrigin, rayDirection, entityAABB)) {
             std::cout << "Hit detected! Entity shot." << std::endl;
+            
+            // Stop entity audio effects
+            if (_audioManager) {
+                _audioManager->stopEntitySounds();
+            }
+
+            _entityLogic.Status = EntityStatus::DEAD;
             
             // Trigger game state change if in AfterMita state
             gameState = GameState::AfterEntity;
@@ -188,7 +193,7 @@ void FinalSceneApp::handleInput() {
                 (int)floor((playerPosition.y + 150) / 300.0f)
             );
             std::cout << "Entity defeated! Proceed to final area." << std::endl;
-        }    }
+        }}
 
     // view movement
     if (_input.mouse.move.xNow != _input.mouse.move.xOld) {
@@ -359,7 +364,7 @@ void FinalSceneApp::updateState() {
                     glm::vec3 dialogPos = _animatedMita->transform.position + glm::vec3(0.0f, 1.8f, 0.0f);
                     _dialog->setBasePosition(dialogPos);
                 }
-                during_debug_remain_time = 5.0f;
+                during_debug_remain_time = 10.0f;
             }
             break;
         case GameState::DuringMita:
@@ -938,43 +943,45 @@ void FinalSceneApp::renderSceneToFramebuffer() {
     }
 
     // Render dialog during DuringMita state
-    if (!_dialog) {
-        std::cout << "123" << std::endl;
-    }
-    if (gameState == GameState::DuringMita && _dialog) {
-        // Use entity shader for dialog text rendering (it supports basic 3D model rendering)
-        _entityShader->use();
-        _entityShader->setUniformMat4("projection", projection);
-        _entityShader->setUniformMat4("view", view);
+    // if (!_dialog) {
+    //     std::cout << "123" << std::endl;
+    // }
+    // if (gameState == GameState::DuringMita && _dialog) {
+    //     // Use entity shader for dialog text rendering (it supports basic 3D model rendering)
+    //     _entityShader->use();
+    //     _entityShader->setUniformMat4("projection", projection);
+    //     _entityShader->setUniformMat4("view", view);
         
-        // Set basic material properties for text
-        _entityShader->setUniformVec3("material.ambient", glm::vec3(0.3f));
-        _entityShader->setUniformVec3("material.diffuse", glm::vec3(1.0f));
-        _entityShader->setUniformVec3("material.specular", glm::vec3(0.5f));
-        _entityShader->setUniformVec3("material.color", glm::vec3(1.0f));
-        _entityShader->setUniformFloat("material.shininess", 32.0f);
+    //     // Set basic material properties for text
+    //     _entityShader->setUniformVec3("material.ambient", glm::vec3(0.3f));
+    //     _entityShader->setUniformVec3("material.diffuse", glm::vec3(1.0f));
+    //     _entityShader->setUniformVec3("material.specular", glm::vec3(0.5f));
+    //     _entityShader->setUniformVec3("material.color", glm::vec3(1.0f));
+    //     _entityShader->setUniformFloat("material.shininess", 32.0f);
         
-        // Set lighting for dialog text
-        _entityShader->setUniformVec3("ambientLight.color", glm::vec3(1.0f));
-        _entityShader->setUniformFloat("ambientLight.intensity", 0.8f);
-        _entityShader->setUniformVec3("viewPosition", _camera->transform.position);
+    //     // Set lighting for dialog text
+    //     _entityShader->setUniformVec3("ambientLight.color", glm::vec3(1.0f));
+    //     _entityShader->setUniformFloat("ambientLight.intensity", 0.8f);
+    //     _entityShader->setUniformVec3("viewPosition", _camera->transform.position);
         
-        // Disable texture for text models
-        _entityShader->setUniformBool("useTexture", false);
+    //     // Disable texture for text models
+    //     _entityShader->setUniformBool("useTexture", false);
         
-        // Get camera position and rotation for billboard effect
-        glm::vec3 cameraPos = _camera->transform.position;
-        glm::quat cameraRot = _camera->transform.rotation;
+    //     // Get camera position and rotation for billboard effect
+    //     glm::vec3 cameraPos = _camera->transform.position;
+    //     glm::quat cameraRot = _camera->transform.rotation;
         
-        // Draw dialog with camera-facing billboard effect
-        _dialog->draw(_deltaTime, _entityShader.get(), cameraPos, cameraRot);
+    //     // Draw dialog with camera-facing billboard effect
+    //     _dialog->draw(_deltaTime, _entityShader.get(), cameraPos, cameraRot);
         
-        std::cout << "Rendered dialog during DuringMita state" << std::endl;
-    }    
+    //     std::cout << "Rendered dialog during DuringMita state" << std::endl;
+    // }    
     if (gameState == GameState::DuringMita && _dialog) {
         _texShader->use();
         _texShader->setUniformMat4("projection", projection);
         _texShader->setUniformMat4("view", view);
+
+        // _texShader->setUniform
 
         glm::vec3 dialogPos = _animatedMita->transform.position + glm::vec3(0.0f, 2.8f, 0.0f);
         _dialog->setBasePosition(dialogPos);

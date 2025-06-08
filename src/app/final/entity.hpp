@@ -7,7 +7,8 @@
 
 enum class EntityStatus {
     PATROL = 0,  // 巡逻状态 - 随机游走寻找玩家
-    CHASE = 1    // 追逐状态 - 能看到玩家或正在前往最后看见玩家的位置
+    CHASE = 1,    // 追逐状态 - 能看到玩家或正在前往最后看见玩家的位置
+    DEAD = 2
 };
 
 class EntityLogic {

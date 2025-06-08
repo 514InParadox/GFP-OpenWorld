@@ -26,5 +26,6 @@ void main() {
 
     // fragColor = vec4(texColor * (ambient + diffuse), 1.0f);
     // fragColor = vec4(ambient + diffuse, 1.0f);
-    fragColor = vec4(texColor, 1.0f);
+    // fragColor = vec4(texColor, 1.0f);
+    fragColor = vec4(0.8f, 0.11f, 0.69f, 1.0f);
 }

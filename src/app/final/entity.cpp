@@ -84,6 +84,9 @@ glm::vec2 generateRandomDirection(std::mt19937 &gen) {
 // Move entity based on player position and delta time
 // This function automatically updates Status and position based on line of sight
 void EntityLogic::move(const glm::vec2 &playerPos, float deltaTime) {
+    if (Status == EntityStatus::DEAD) {
+        return;
+    }
     // Check if entity and player can see each other
     bool canSeePlayer = hasLineOfSight(_entityPos, playerPos);
     

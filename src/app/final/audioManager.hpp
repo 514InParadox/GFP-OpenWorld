@@ -45,6 +45,9 @@ public:
     void updateEntitySound(const EntityLogic& entityLogic, 
                            const glm::vec2& playerPosition);
 
+    // 停止所有实体音效
+    void stopEntitySounds();
+
 private:
     irrklang::ISoundEngine* _audioEngine = nullptr; // irrKlang 音频引擎
 

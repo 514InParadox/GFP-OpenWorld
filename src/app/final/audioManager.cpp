@@ -261,3 +261,18 @@ void AudioManager::updateEntitySound(const EntityLogic &entityLogic,
         lastStatus = entityLogic.Status;
     }
 }
+
+void AudioManager::stopEntitySounds()
+{
+    // 停止并暂停所有实体音效
+    if (_entityPatrolSound) {
+        _entityPatrolSound->setIsPaused(true);
+        _entityPatrolSound->setVolume(0.0f);
+    }
+    if (_entityChaseSound) {
+        _entityChaseSound->setIsPaused(true);
+        _entityChaseSound->setVolume(0.0f);
+    }
+    
+    std::cout << "Entity sounds stopped." << std::endl;
+}
