@@ -20,19 +20,23 @@ const std::string mapPath    = "resource/model/map.obj";
 const std::string lightPath  = "resource/model/light.obj";
 const std::string gunPath    = "resource/model/gun.obj";
 
+// Animated model paths for skeletal animation
+const std::string animatedEntityPath = "resource/model/Howler_motion.fbx";
+const std::string animatedMitaPath   = "resource/model/Mita_motion.fbx";
+
 const std::string texVertexShaderAddr   = "shader/vertex/oneTexture_diffuseLight.vert";
 const std::string texFragmentShaderAddr = "shader/fragment/oneTexture_diffuseLight.frag";
 
 const std::string vertexShaderAddr   = "shader/vertex/initSceneApp.vert";
 const std::string fragmentShaderAddr = "shader/fragment/initSceneApp.frag";
 
-const std::string entityVertexShaderAddr   = "shader/vertex/entity.vert";
+const std::string entityVertexShaderAddr   = "shader/vertex/entity_animated.vert";
 const std::string entityFragmentShaderAddr = "shader/fragment/entity.frag";
 
 const std::string mapVertexShaderAddr   = "shader/vertex/map.vert";
 const std::string mapFragmentShaderAddr = "shader/fragment/map.frag";
 
-const std::string mitaVertexShaderAddr   = "shader/vertex/entity.vert";
+const std::string mitaVertexShaderAddr   = "shader/vertex/entity_animated.vert";
 const std::string mitaFragmentShaderAddr = "shader/fragment/entity.frag";
 
 const std::string emissiveVertexShaderAddr   = "shader/vertex/emissive.vert";

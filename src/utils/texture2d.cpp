@@ -77,6 +77,8 @@ ImageTexture2D::ImageTexture2D(const std::string& path) : _uri(path) {
 
     // free data
     stbi_image_free(data);
+    
+    stbi_set_flip_vertically_on_load(false);
 
     // check error
     check();

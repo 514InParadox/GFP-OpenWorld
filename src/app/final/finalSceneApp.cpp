@@ -32,14 +32,8 @@ FinalSceneApp::FinalSceneApp(const Options &options) : Application(options) {
 
     _camera.reset(new PerspectiveCamera(glm::radians(60.0f), aspect, znear, zfar));
     // _camera->transform.position = glm::vec3(0.0f, 1.8f, 0.0f);
-    // _camera->transform.position = glm::vec3(-147.0f, 1.8f, -147.0f);
-
-    // init NPC
-    _entity.reset(new AdvancedModel(getAssetFullPath(entityPath)));
-    _entity->transform.position = glm::vec3(-10.0f, 0.0f, -10.0f);
-    _mita.reset(new AdvancedModel(getAssetFullPath(mitaPath)));
-    _mita->transform.scale = glm::vec3(0.1f);
-    _mita->transform.position = glm::vec3(mitaCoord.first - 150, 0.0f, mitaCoord.second - 150);    // init gun
+    // _camera->transform.position = glm::vec3(-147.0f, 1.8f, -147.0f);    // init NPC - Animated models
+    initAnimatedModels();// init gun
     _gun.reset(new AdvancedModel(getAssetFullPath(gunPath)));
     // _gun->transform.scale = glm::vec3(0.1f);
 
@@ -175,8 +169,8 @@ void FinalSceneApp::handleInput() {
         glm::vec3 rayDirection = glm::normalize(_camera->transform.getFront());
         
         // Get entity's world-space AABB
-        BoundingBox entityAABB = _entity->getBoundingBox();
-        entityAABB.transform(_entity->transform.getLocalMatrix());
+        BoundingBox entityAABB = _animatedEntity->getBoundingBox();
+        entityAABB.transform(_animatedEntity->transform.getLocalMatrix());
         
         // Check ray-AABB intersection
         if (rayIntersectsAABB(rayOrigin, rayDirection, entityAABB)) {
@@ -326,7 +320,7 @@ void FinalSceneApp::updateState() {
                 puts("Lose: BeforeMita");
                 // gameState = GameState::LoseInterface;
             }
-            mitaPos = glm::vec2(_mita->transform.position.x, _mita->transform.position.z);
+            mitaPos = glm::vec2(_animatedMita->transform.position.x, _animatedMita->transform.position.z);
             if (distance(mitaPos, playerPosition) < MitaTriggleDist) {
                 gameState = GameState::DuringMita;
                 during_debug_remain_time = 5;
@@ -339,6 +333,7 @@ void FinalSceneApp::updateState() {
             if (during_debug_remain_time > 0) {
                 during_debug_remain_time -= _deltaTime;
             } else {
+                _entityLogic.setEntityPos(glm::vec2(10.0f, -10.0f));
                 gameState = GameState::AfterMita;
             }
             break;
@@ -365,11 +360,14 @@ void FinalSceneApp::updateState() {
     _entityLogic.move(playerPosition, _deltaTime);
 }
 
-void FinalSceneApp::run() {
+void FinalSceneApp::run() {    
     while (!glfwWindowShouldClose(_window)) {
         updateTime();
 
         updateState();
+
+        // Update animations
+        updateAnimations();
 
         handleInput();
 
@@ -503,13 +501,11 @@ void FinalSceneApp::renderSceneToFramebuffer() {
     // Original positions (commented for testing)
     // _entity->transform.position = glm::vec3(-145, 0.5f, -145);
     // _entity->transform.scale = glm::vec3(0.3f);
-    // _mita->transform.position = glm::vec3(mapLattice.first * 300.0f - 150.0f + mitaCoord.first, 0.0f, mapLattice.second * 300.0f - 150.0f + mitaCoord.second);
-
-    // Manual control with IJKL keys (switchable between mita and entity)
-    // static glm::vec3 mitaPosition = glm::vec3(mitaCoord.first + mapLattice.first * 300 - 150, 0.0f, mitaCoord.second + mapLattice.second * 300 - 150); // Initial mita position
-    glm::vec3 mitaPosition = _mita->transform.position;
-    // static glm::vec3 entityPosition(-126.0f, 1.0f, -121.0f); // Initial entity position
-    glm::vec3 entityPosition = _entity->transform.position;
+    // _mita->transform.position = glm::vec3(mapLattice.first * 300.0f - 150.0f + mitaCoord.first, 0.0f, mapLattice.second * 300.0f - 150.0f + mitaCoord.second);    // Manual control with IJKL keys (switchable between mita and entity)
+    // glm::vec3 mitaPosition = _animatedMita ? _animatedMita->transform.position : _mita->transform.position;
+    // glm::vec3 entityPosition = _animatedEntity ? _animatedEntity->transform.position : _entity->transform.position;
+    glm::vec3 mitaPosition = _animatedMita->transform.position;
+    glm::vec3 entityPosition = _animatedEntity->transform.position;
     float moveSpeed = 3.0f; // Units per second
     
     // Movement controls (IJKL keys) - controlled object depends on _controlMode
@@ -531,30 +527,47 @@ void FinalSceneApp::renderSceneToFramebuffer() {
     } else if (_controlMode == ControlMode::Mita) {
         *controlledPosition = glm::vec3(mapLattice.first * 300 - 150 + mitaCoord.first, 0.0f, mapLattice.second * 300 - 150 + mitaCoord.second);
     }
-      // Apply positions to models
-    _entity->transform.position = entityPosition;
-    _entity->transform.scale = glm::vec3(0.3f);
-    _mita->transform.position = mitaPosition;
-    _mita->transform.scale = glm::vec3(50.0f); // Increased scale for better visibility
+      // Apply positions to models (both regular and animated models for compatibility)
+    if (_animatedEntity) {
+        _animatedEntity->transform.position = entityPosition;
+        _animatedEntity->transform.scale = glm::vec3(0.4f);
+    }
+    // if (_entity) {
+    //     _entity->transform.position = entityPosition;
+    //     _entity->transform.scale = glm::vec3(0.3f);
+    // }
+    
+    if (_animatedMita) {
+        _animatedMita->transform.position = mitaPosition;
+        _animatedMita->transform.scale = glm::vec3(0.5f); // Use original scale for mita
+    }
+    // if (_mita) {
+    //     _mita->transform.position = mitaPosition;
+    //     _mita->transform.scale = glm::vec3(50.0f); // Increased scale for better visibility
+    // }
 
-    std::cout << "mita: " << mitaPosition.x << ", " << mitaPosition.z << std::endl;
-
-    // Debug output for mita and entity positions and game state
+    std::cout << "mita: " << mitaPosition.x << ", " << mitaPosition.z << std::endl;    // Debug output for mita and entity positions and game state
     static float debugTimer = 0.0f;
     debugTimer += _deltaTime;
     if (debugTimer >= 2.0f) { // Output debug info every 2 seconds
         std::cout << "=== Debug Info ===" << std::endl;
         std::cout << "Control mode: " << ((_controlMode == ControlMode::Mita) ? "Mita" : "Entity") << std::endl;
         
+        // Use animated models for position if available
+        // glm::vec3 currentMitaPos = _animatedMita ? _animatedMita->transform.position : _mita->transform.position;
+        // glm::vec3 currentEntityPos = _animatedEntity ? _animatedEntity->transform.position : _entity->transform.position;
+        glm::vec3 currentMitaPos = _animatedMita->transform.position;
+        glm::vec3 currentEntityPos = _animatedEntity->transform.position;
+        
         std::cout << "Mita position: (" << std::fixed << std::setprecision(3) 
-                  << _mita->transform.position.x << ", " 
-                  << _mita->transform.position.y << ", " 
-                  << _mita->transform.position.z << ")" << std::endl;
+                  << currentMitaPos.x << ", " 
+                  << currentMitaPos.y << ", " 
+                  << currentMitaPos.z << ")" << std::endl;
         
         std::cout << "Entity position: (" << std::fixed << std::setprecision(3) 
-                  << _entity->transform.position.x << ", " 
-                  << _entity->transform.position.y << ", " 
-                  << _entity->transform.position.z << ")" << std::endl;
+                  << currentEntityPos.x << ", " 
+                  << currentEntityPos.y << ", " 
+                  << currentEntityPos.z << ")" << std::endl;
         
         std::cout << "Camera position: (" << std::fixed << std::setprecision(3) 
                   << _camera->transform.position.x << ", " 
@@ -615,44 +628,67 @@ void FinalSceneApp::renderSceneToFramebuffer() {
     updateDynamicPointLights();
     
     // Update mita point lights based on mita position and map data
-    updateMitaPointLights();
-
-    // draw entity
+    updateMitaPointLights();    // draw entity
     if (gameState == GameState::BeforeMita || gameState == GameState::AfterMita) {
-        _entityShader->use();
-        _entityShader->setUniformMat4("projection", projection);
-        _entityShader->setUniformMat4("view", view);
-        glm::vec2 entityPos = _entityLogic.getEntityPos();
-        _entity->transform.position = glm::vec3(entityPos.x, 0.0f, entityPos.y);
-        _entityShader->setUniformMat4("model", _entity->transform.getLocalMatrix());
-        
-        // Set camera position for lighting calculations
-        _entityShader->setUniformVec3("viewPosition", _camera->transform.position);
-        
-        // Set material properties (reduced reflectivity to prevent over-brightness)
-        _entityShader->setUniformVec3("material.ambient", glm::vec3(0.05f, 0.05f, 0.05f));
-        _entityShader->setUniformVec3("material.diffuse", glm::vec3(0.4f, 0.4f, 0.4f));
-        _entityShader->setUniformVec3("material.specular", glm::vec3(0.2f, 0.2f, 0.2f));
-        _entityShader->setUniformVec3("material.color", glm::vec3(0.7f, 0.7f, 0.7f));
-        _entityShader->setUniformFloat("material.shininess", 64.0f);
-        
-        // Set ambient light
-        _entityShader->setUniformVec3("ambientLight.color", glm::vec3(1.0f, 1.0f, 1.0f));
-        _entityShader->setUniformFloat("ambientLight.intensity", 0.2f);
-        
-        // Set dynamic point lights
-        setPointLightsUniforms(_entityShader.get());
-        
-        // Debug: Output number of lights being used
-        static float lightCountTimer = 0.0f;
-        lightCountTimer += _deltaTime;
-        if (lightCountTimer >= 2.0f) {
-            std::cout << "Setting " << _dynamicPointLights.size() << " point lights to entity shader" << std::endl;
-            lightCountTimer = 0.0f;
+        if (_animatedEntity && _entityAnimator) {
+            _entityShader->use();
+            _entityShader->setUniformMat4("projection", projection);
+            _entityShader->setUniformMat4("view", view);
+            
+            // Update entity position from EntityLogic
+            glm::vec2 entityPos = _entityLogic.getEntityPos();
+            _animatedEntity->transform.position = glm::vec3(entityPos.x, 0.3f, entityPos.y);
+              // Make entity face towards player (camera position)
+            glm::vec3 playerPosition = _camera->transform.position;
+            glm::vec3 entityToPlayer = playerPosition - _animatedEntity->transform.position;
+            
+            // Only rotate around Y axis (yaw) to keep entity upright
+            if (glm::length(entityToPlayer) > 0.001f) { // Avoid zero-length vector
+                entityToPlayer.y = 0.0f; // Remove vertical component for Y-axis only rotation
+                entityToPlayer = glm::normalize(entityToPlayer);
+                
+                // Calculate rotation to face player with 90-degree offset for model orientation
+                float angle = atan2(entityToPlayer.x, entityToPlayer.z); // Calculate Y-axis rotation angle
+                angle -= glm::radians(90.0f); // Add 90-degree offset to correct model orientation
+                _animatedEntity->transform.rotation = glm::angleAxis(angle, glm::vec3(0.0f, 1.0f, 0.0f));
+            }
+            
+            _entityShader->setUniformMat4("model", _animatedEntity->transform.getLocalMatrix());
+            
+            // Set camera position for lighting calculations
+            _entityShader->setUniformVec3("viewPosition", _camera->transform.position);
+            
+            // Set material properties (reduced reflectivity to prevent over-brightness)
+            _entityShader->setUniformVec3("material.ambient", glm::vec3(0.05f, 0.05f, 0.05f));
+            _entityShader->setUniformVec3("material.diffuse", glm::vec3(0.4f, 0.4f, 0.4f));
+            _entityShader->setUniformVec3("material.specular", glm::vec3(0.2f, 0.2f, 0.2f));
+            _entityShader->setUniformVec3("material.color", glm::vec3(0.7f, 0.7f, 0.7f));
+            _entityShader->setUniformFloat("material.shininess", 64.0f);
+            
+            // Set ambient light
+            _entityShader->setUniformVec3("ambientLight.color", glm::vec3(1.0f, 1.0f, 1.0f));
+            _entityShader->setUniformFloat("ambientLight.intensity", 0.2f);
+            
+            // Set dynamic point lights
+            setPointLightsUniforms(_entityShader.get());
+            
+            // Set bone matrices for skeletal animation
+            auto transforms = _entityAnimator->GetFinalBoneMatrices();
+            for (int i = 0; i < transforms.size(); ++i) {
+                _entityShader->setUniformMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+            }
+            
+            // Debug: Output number of lights being used
+            static float lightCountTimer = 0.0f;
+            lightCountTimer += _deltaTime;
+            if (lightCountTimer >= 2.0f) {
+                std::cout << "Setting " << _dynamicPointLights.size() << " point lights to entity shader" << std::endl;
+                lightCountTimer = 0.0f;
+            }
+            
+            _animatedEntity->Draw(*_entityShader);
         }
-        
-        _entity->draw();
-    }    
+    }
     
     // draw gun
     if (gameState == GameState::DuringMita) {
@@ -752,60 +788,75 @@ void FinalSceneApp::renderSceneToFramebuffer() {
                       << ", Normal: " << (foundNormal ? "Yes" : "No") << std::endl;
             gunDebugTimer = 0.0f;
         }
-    }
-
-    // draw mita
+    }    // draw mita
     if (gameState == GameState::BeforeMita || gameState == GameState::DuringMita) {
-        _mitaShader->use();
-        _mitaShader->setUniformMat4("projection", projection);
-        _mitaShader->setUniformMat4("view", view);
-        _mitaShader->setUniformMat4("model", _mita->transform.getLocalMatrix());
-        
-        // Set camera position for lighting calculations
-        _mitaShader->setUniformVec3("viewPosition", _camera->transform.position);
-          // Set material properties for mita (enhanced for better visibility)
-        _mitaShader->setUniformVec3("material.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
-        _mitaShader->setUniformVec3("material.diffuse", glm::vec3(0.8f, 0.8f, 0.8f));
-        _mitaShader->setUniformVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
-        _mitaShader->setUniformVec3("material.color", glm::vec3(1.0f, 1.0f, 1.0f));
-        _mitaShader->setUniformFloat("material.shininess", 64.0f);
-          // Set ambient light (reduced intensity to prevent overexposure)
-        _mitaShader->setUniformVec3("ambientLight.color", glm::vec3(1.0f, 1.0f, 1.0f));
-        _mitaShader->setUniformFloat("ambientLight.intensity", 0.8f);
-        
-        // Set mita's dynamic point lights
-        setMitaPointLightsUniforms(_mitaShader.get());
-          // Enable texture for mita
-        _mitaShader->setUniformBool("useTexture", true);
-        _mitaShader->setUniformInt("diffuseTexture", 0);
-        
-        // Ensure proper OpenGL state for mita rendering
-        // glEnable(GL_DEPTH_TEST);
-        // glDepthFunc(GL_LESS);
-        // glEnable(GL_CULL_FACE);
-        // glCullFace(GL_BACK);
-        
-        // Debug: Output mita transformation matrix
-        static float mitaDebugTimer = 0.0f;
-        mitaDebugTimer += _deltaTime;
-        if (mitaDebugTimer >= 3.0f) {
-            glm::mat4 mitaMatrix = _mita->transform.getLocalMatrix();
-            std::cout << "Mita transform matrix position: (" 
-                      << mitaMatrix[3][0] << ", " << mitaMatrix[3][1] << ", " << mitaMatrix[3][2] << ")" << std::endl;
-            std::cout << "Mita scale: " << _mita->transform.scale.x << std::endl;
-            mitaDebugTimer = 0.0f;
+        if (_animatedMita && _mitaAnimator) {
+            _mitaShader->use();
+            _mitaShader->setUniformMat4("projection", projection);
+            _mitaShader->setUniformMat4("view", view);
+            
+            // Make mita face towards player (camera position)
+            glm::vec3 playerPosition = _camera->transform.position;
+            glm::vec3 mitaToPlayer = playerPosition - _animatedMita->transform.position;
+            
+            // Only rotate around Y axis (yaw) to keep mita upright
+            if (glm::length(mitaToPlayer) > 0.001f) { // Avoid zero-length vector
+                mitaToPlayer.y = 0.0f; // Remove vertical component for Y-axis only rotation
+                mitaToPlayer = glm::normalize(mitaToPlayer);
+                
+                // Calculate rotation to face player
+                float angle = atan2(mitaToPlayer.x, mitaToPlayer.z); // Calculate Y-axis rotation angle
+                _animatedMita->transform.rotation = glm::angleAxis(angle, glm::vec3(0.0f, 1.0f, 0.0f));
+            }
+            
+            _mitaShader->setUniformMat4("model", _animatedMita->transform.getLocalMatrix());
+            
+            // Set camera position for lighting calculations
+            _mitaShader->setUniformVec3("viewPosition", _camera->transform.position);
+              // Set material properties for mita (enhanced for better visibility)
+            _mitaShader->setUniformVec3("material.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+            _mitaShader->setUniformVec3("material.diffuse", glm::vec3(0.8f, 0.8f, 0.8f));
+            _mitaShader->setUniformVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+            _mitaShader->setUniformVec3("material.color", glm::vec3(1.0f, 1.0f, 1.0f));
+            _mitaShader->setUniformFloat("material.shininess", 64.0f);
+              // Set ambient light (reduced intensity to prevent overexposure)
+            _mitaShader->setUniformVec3("ambientLight.color", glm::vec3(1.0f, 1.0f, 1.0f));
+            _mitaShader->setUniformFloat("ambientLight.intensity", 0.8f);
+            
+            // Set mita's dynamic point lights
+            setMitaPointLightsUniforms(_mitaShader.get());
+              // Enable texture for mita
+            _mitaShader->setUniformBool("useTexture", true);
+            _mitaShader->setUniformInt("diffuseTexture", 0);
+            
+            // Set bone matrices for skeletal animation
+            auto transforms = _mitaAnimator->GetFinalBoneMatrices();
+            for (int i = 0; i < transforms.size(); ++i) {
+                _mitaShader->setUniformMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+            }
+            
+            // Debug: Output mita transformation matrix
+            static float mitaDebugTimer = 0.0f;
+            mitaDebugTimer += _deltaTime;
+            if (mitaDebugTimer >= 3.0f) {
+                glm::mat4 mitaMatrix = _animatedMita->transform.getLocalMatrix();
+                std::cout << "Mita transform matrix position: (" 
+                          << mitaMatrix[3][0] << ", " << mitaMatrix[3][1] << ", " << mitaMatrix[3][2] << ")" << std::endl;
+                std::cout << "Mita scale: " << _animatedMita->transform.scale.x << std::endl;
+                mitaDebugTimer = 0.0f;
+            }
+            
+            // Debug: Output number of lights being used for mita
+            static float mitaLightCountTimer = 0.0f;
+            mitaLightCountTimer += _deltaTime;
+            if (mitaLightCountTimer >= 2.0f) {
+                std::cout << "Setting " << _mitaPointLights.size() << " point lights to mita shader" << std::endl;
+                mitaLightCountTimer = 0.0f;
+            }
+            
+            _animatedMita->Draw(*_mitaShader);
+            std::cout << "draw mita at" << _animatedMita->transform.position.x << ", " << _animatedMita->transform.position.z << std::endl;
         }
-        
-        // Debug: Output number of lights being used for mita
-        static float mitaLightCountTimer = 0.0f;
-        mitaLightCountTimer += _deltaTime;
-        if (mitaLightCountTimer >= 2.0f) {
-            std::cout << "Setting " << _mitaPointLights.size() << " point lights to mita shader" << std::endl;
-            mitaLightCountTimer = 0.0f;
-        }
-        
-        _mita->draw();
-        std::cout << "draw mita at" << _mita->transform.position.x << ", " << _mita->transform.position.z << std::endl;
     }
 }
 
@@ -919,7 +970,7 @@ void FinalSceneApp::updateDynamicPointLights() {
     _dynamicPointLights.clear();
     
     // Get current entity position in world coordinates
-    glm::vec3 entityPos = _entity->transform.position;
+    glm::vec3 entityPos = _animatedEntity->transform.position;
     
     // Convert world position to map coordinates
     // Map coordinate system: world position = (mapX - 150, y, mapZ - 150)
@@ -989,7 +1040,7 @@ void FinalSceneApp::updateMitaPointLights() {
     _mitaPointLights.clear();
     
     // Get current mita position in world coordinates
-    glm::vec3 mitaPos = _mita->transform.position;
+    glm::vec3 mitaPos = _animatedMita->transform.position;
     
     // Convert world position to map coordinates
     // Map coordinate system: world position = (mapX - 150, y, mapZ - 150)
@@ -1116,4 +1167,143 @@ bool FinalSceneApp::rayIntersectsAABB(const glm::vec3& rayOrigin, const glm::vec
 
     // Ray intersects AABB if tNear <= tFar and tFar >= 0
     return tNear <= tFar && tFar >= 0.0f;
+}
+
+// Animation system implementation
+void FinalSceneApp::initAnimatedModels() {
+    try {
+        // Initialize animated entity model
+        _animatedEntity.reset(new AnimatedModel(getAssetFullPath(animatedEntityPath)));
+        _animatedEntity->transform.position = glm::vec3(-10.0f, 0.3f, -10.0f);
+        
+        // Initialize animated mita model
+        _animatedMita.reset(new AnimatedModel(getAssetFullPath(animatedMitaPath)));
+        _animatedMita->transform.scale = glm::vec3(0.5f);
+        _animatedMita->transform.position = glm::vec3(mitaCoord.first - 150, 0.0f, mitaCoord.second - 150);
+        
+        // Setup animations for both models
+        setupAnimations();
+        
+        std::cout << "Animated models initialized successfully!" << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "Failed to initialize animated models: " << e.what() << std::endl;
+    }
+}
+
+void FinalSceneApp::setupAnimations() {
+    if (!_animatedEntity || !_animatedMita) {
+        std::cerr << "Animated models not initialized, cannot setup animations" << std::endl;
+        return;
+    }
+    
+    try {
+        // Setup entity animations
+        int entityAnimationCount = Animation::GetAnimationCount(getAssetFullPath(animatedEntityPath));
+        for (int i = 0; i < entityAnimationCount; ++i) {
+            auto animation = std::make_unique<Animation>(getAssetFullPath(animatedEntityPath), _animatedEntity.get(), i);
+            _entityAnimations.push_back(std::move(animation));
+        }
+        
+        // Setup mita animations
+        int mitaAnimationCount = Animation::GetAnimationCount(getAssetFullPath(animatedMitaPath));
+        for (int i = 0; i < mitaAnimationCount; ++i) {
+            auto animation = std::make_unique<Animation>(getAssetFullPath(animatedMitaPath), _animatedMita.get(), i);
+            _mitaAnimations.push_back(std::move(animation));
+        }
+        
+        // Create animators with first animation
+        if (!_entityAnimations.empty()) {
+            _entityAnimator.reset(new Animator(_entityAnimations[0].get()));
+            _currentEntityAnimationIndex = 0;
+        }
+        
+        if (!_mitaAnimations.empty()) {
+            _mitaAnimator.reset(new Animator(_mitaAnimations[0].get()));
+            _currentMitaAnimationIndex = 0;
+        }
+        
+        std::cout << "Animations setup completed!" << std::endl;
+        std::cout << "Entity animations: " << _entityAnimations.size() << std::endl;
+        std::cout << "Mita animations: " << _mitaAnimations.size() << std::endl;
+        
+    } catch (const std::exception& e) {
+        std::cerr << "Failed to setup animations: " << e.what() << std::endl;
+    }
+}
+
+void FinalSceneApp::updateAnimations() {
+    // Calculate delta time for animations
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    float deltaTime = std::chrono::duration<float>(currentTime - _lastFrameTime).count();
+    _lastFrameTime = currentTime;
+    
+    // Update entity animation based on EntityStatus
+    updateEntityAnimation();
+    
+    // Update mita animation (always moving)
+    updateMitaAnimation();
+    
+    // Update animators
+    if (_entityAnimator) {
+        _entityAnimator->UpdateAnimation(deltaTime * 5);
+    }
+    
+    if (_mitaAnimator) {
+        _mitaAnimator->UpdateAnimation(deltaTime * 5);
+    }
+}
+
+void FinalSceneApp::updateEntityAnimation() {
+    if (_entityAnimations.empty() || !_entityAnimator) return;
+    
+    // Get entity status from EntityLogic
+    EntityStatus currentStatus = _entityLogic.getStatus();
+    
+    // Determine which animation to play based on status
+    int targetAnimationIndex = _currentEntityAnimationIndex;
+    
+    switch (currentStatus) {
+        case EntityStatus::PATROL:
+            // Use first animation for patrol (usually idle/walk)
+            targetAnimationIndex = 0;
+            break;
+        case EntityStatus::CHASE:
+            // Use second animation for chase (usually run) if available
+            targetAnimationIndex = _entityAnimations.size() > 1 ? 1 : 0;
+            break;
+        default:
+            targetAnimationIndex = 0;
+            break;
+    }
+    
+    // Switch animation if needed
+    if (targetAnimationIndex != _currentEntityAnimationIndex) {
+        switchEntityAnimation(targetAnimationIndex);
+    }
+}
+
+void FinalSceneApp::updateMitaAnimation() {
+    // Mita always uses the first animation (movement)
+    if (_mitaAnimations.empty() || !_mitaAnimator) return;
+    
+    // Keep using the first animation for now
+    if (_currentMitaAnimationIndex != 0) {
+        switchMitaAnimation(0);
+    }
+}
+
+void FinalSceneApp::switchEntityAnimation(int animationIndex) {
+    if (animationIndex >= 0 && animationIndex < _entityAnimations.size() && _entityAnimator) {
+        _currentEntityAnimationIndex = animationIndex;
+        _entityAnimator->PlayAnimation(_entityAnimations[animationIndex].get());
+        std::cout << "Switched entity to animation " << animationIndex << std::endl;
+    }
+}
+
+void FinalSceneApp::switchMitaAnimation(int animationIndex) {
+    if (animationIndex >= 0 && animationIndex < _mitaAnimations.size() && _mitaAnimator) {
+        _currentMitaAnimationIndex = animationIndex;
+        _mitaAnimator->PlayAnimation(_mitaAnimations[animationIndex].get());
+        std::cout << "Switched mita to animation " << animationIndex << std::endl;
+    }
 }

@@ -16,44 +16,32 @@ void AnimatedMesh::Draw(GLSLProgram& shader) {
     
     // Initialize texture binding state
     bool hasTextures = !textures.empty();
-    
-    if (hasTextures) {
-        // Bind textures and set uniforms
-        unsigned int diffuseNr = 1;
-        unsigned int specularNr = 1;
-        unsigned int normalNr = 1;
-        unsigned int heightNr = 1;
+      if (hasTextures) {
+        // Bind textures and set uniforms for entity.frag shader
+        bool foundDiffuse = false;
         
         for (unsigned int i = 0; i < textures.size(); i++) {
-            textures[i]->bind(i);
+            textures[i]->bind(0); // Bind all textures to slot 0 for now
             
-            // Determine texture type based on position (this is a simplified approach)
-            std::string name;
-            std::string number;
-            
-            if (i == 0) {
-                name = "texture_diffuse";
-                number = std::to_string(diffuseNr++);
-            } else if (i == 1) {
-                name = "texture_specular";
-                number = std::to_string(specularNr++);
-            } else if (i == 2) {
-                name = "texture_normal";
-                number = std::to_string(normalNr++);
-            } else if (i == 3) {
-                name = "texture_height";
-                number = std::to_string(heightNr++);
-            } else {
-                // Default to diffuse for additional textures
-                name = "texture_diffuse";
-                number = std::to_string(diffuseNr++);
+            // For entity.frag shader, we only use the first texture as diffuse
+            if (!foundDiffuse) {
+                // Set the diffuseTexture uniform that entity.frag expects
+                shader.setUniformInt("diffuseTexture", 0);
+                shader.setUniformBool("useTexture", true);
+                foundDiffuse = true;
+                break; // Only use the first texture
             }
-            
-            // Set the sampler to the correct texture unit
-            shader.setUniformInt(("material." + name + number).c_str(), i);
+        }
+        
+        if (!foundDiffuse) {
+            // Fallback to no texture mode
+            shader.setUniformBool("useTexture", false);
         }
     } else {
-        // No textures loaded - bind a default white texture
+        // No textures loaded - disable texture usage
+        shader.setUniformBool("useTexture", false);
+        
+        // Optionally bind a default white texture for safety
         static GLuint whiteTexture = 0;
         if (whiteTexture == 0) {
             glGenTextures(1, &whiteTexture);
@@ -66,11 +54,7 @@ void AnimatedMesh::Draw(GLSLProgram& shader) {
         
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, whiteTexture);
-        shader.setUniformInt("material.texture_diffuse1", 0);
-        
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, whiteTexture);
-        shader.setUniformInt("material.texture_specular1", 1);
+        shader.setUniformInt("diffuseTexture", 0);
     }
 
     // draw mesh

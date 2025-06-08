@@ -90,6 +90,6 @@ glm::vec3 getCameraPos(const glm::vec2 &playerPos, const glm::vec2 &deltaPos, co
     }
 
 
-    cameraHeight = height + volume * sin(timeNow * 4 * pi) * 3;
+    cameraHeight = height + volume * sin(timeNow * 4 * pi);
     return glm::vec3(playerPos.x, cameraHeight, playerPos.y);
 }

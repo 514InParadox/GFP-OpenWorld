@@ -15,13 +15,14 @@
 #include "utils/glsl_program.hpp"
 #include "utils/transform.hpp"
 #include "utils/texture2d.hpp"
+#include "utils/bounding_box.hpp"
 
 class AnimatedModel {
 public:
     AnimatedModel(const std::string& path, bool gamma = false);
-    ~AnimatedModel();
-
-    void Draw(GLSLProgram& shader);
+    ~AnimatedModel();    void Draw(GLSLProgram& shader);
+    
+    BoundingBox getBoundingBox() const;
     
     auto& GetBoneInfoMap() { return m_BoneInfoMap; }
     int& GetBoneCount() { return m_BoneCounter; }
@@ -37,13 +38,15 @@ private:
 
     std::map<std::string, BoneInfo> m_BoneInfoMap;
     int m_BoneCounter = 0;
+    
+    BoundingBox _boundingBox;
 
     void loadModel(const std::string& path);
     void processNode(aiNode* node, const aiScene* scene);
     std::unique_ptr<AnimatedMesh> processMesh(aiMesh* mesh, const aiScene* scene);
     std::vector<std::shared_ptr<Texture2D>> loadMaterialTextures(aiMaterial* mat, aiTextureType type, 
-                                                                  std::string typeName);
-    void SetVertexBoneDataToDefault(AnimatedVertex& vertex);
+                                                                  std::string typeName);    void SetVertexBoneDataToDefault(AnimatedVertex& vertex);
     void SetVertexBoneData(AnimatedVertex& vertex, int boneID, float weight);
     void ExtractBoneWeightForVertices(std::vector<AnimatedVertex>& vertices, aiMesh* mesh, const aiScene* scene);
+    void computeBoundingBox();
 };

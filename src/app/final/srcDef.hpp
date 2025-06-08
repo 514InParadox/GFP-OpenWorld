@@ -46,6 +46,10 @@ extern const std::string mapPath;
 extern const std::string lightPath;
 extern const std::string gunPath;
 
+// Animated model paths for skeletal animation
+extern const std::string animatedEntityPath;
+extern const std::string animatedMitaPath;
+
 extern const std::string texVertexShaderAddr;
 extern const std::string texFragmentShaderAddr;
 

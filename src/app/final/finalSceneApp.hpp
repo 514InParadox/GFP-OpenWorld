@@ -7,6 +7,9 @@
 #include "utils/skybox.hpp"
 #include "utils/texture2d.hpp"
 #include "model/advancedModel.hpp"
+#include "animation/animated_model.hpp"
+#include "animation/animation.hpp"
+#include "animation/animator.hpp"
 
 #include "srcDef.hpp"
 #include "entity.hpp"
@@ -77,6 +80,15 @@ private:
     void setPointLightsUniforms(GLSLProgram* shader);
     void setMitaPointLightsUniforms(GLSLProgram* shader);
     
+    // Animation system methods
+    void initAnimatedModels();
+    void setupAnimations();
+    void updateAnimations();
+    void updateEntityAnimation();
+    void updateMitaAnimation();
+    void switchEntityAnimation(int animationIndex);
+    void switchMitaAnimation(int animationIndex);
+    
     GameState gameState{GameState::StartInterface}; // Start directly in game, not interface
 
     // Control mode for IJKL keys
@@ -90,13 +102,23 @@ private:
     
     std::unique_ptr<TexModel> _texModel;
 
-    std::unique_ptr<GLSLProgram> _texShader;
-
-    std::unique_ptr<AdvancedModel> _entity,
-                                   _mita,
-                                   _map,
+    std::unique_ptr<GLSLProgram> _texShader;    std::unique_ptr<AdvancedModel> _map,
                                    _gun,
                                    _light;
+
+    // Animated models for skeletal animation
+    std::unique_ptr<AnimatedModel> _animatedEntity,
+                                   _animatedMita;
+    
+    // Animation system components
+    std::vector<std::unique_ptr<Animation>> _entityAnimations;
+    std::vector<std::unique_ptr<Animation>> _mitaAnimations;
+    std::unique_ptr<Animator> _entityAnimator;
+    std::unique_ptr<Animator> _mitaAnimator;
+    
+    // Animation state
+    int _currentEntityAnimationIndex = 0;
+    int _currentMitaAnimationIndex = 0;
 
 
     std::unique_ptr<GLSLProgram> _entityShader,

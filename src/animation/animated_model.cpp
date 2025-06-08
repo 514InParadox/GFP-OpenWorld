@@ -1,6 +1,7 @@
 #include "animated_model.hpp"
 #include <iostream>
 #include <fstream>
+#include <limits>
 
 AnimatedModel::AnimatedModel(const std::string& path, bool gamma) : gammaCorrection(gamma) {
     loadModel(path);
@@ -15,6 +16,10 @@ void AnimatedModel::Draw(GLSLProgram& shader) {
         meshes[i]->Draw(shader);
 }
 
+BoundingBox AnimatedModel::getBoundingBox() const {
+    return _boundingBox;
+}
+
 void AnimatedModel::loadModel(const std::string& path) {    Assimp::Importer importer;
     // Remove aiProcess_FlipUVs to match Blender's UV coordinates
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | 
@@ -22,13 +27,14 @@ void AnimatedModel::loadModel(const std::string& path) {    Assimp::Importer imp
                                                    aiProcess_ValidateDataStructure);    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         // std::cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
         return;
-    }
-
-    directory = path.substr(0, path.find_last_of('/'));
+    }    directory = path.substr(0, path.find_last_of('/'));
     // std::cout << "Loading model from: " << path << std::endl;
     // std::cout << "Directory: " << directory << std::endl;
 
     processNode(scene->mRootNode, scene);
+    
+    // Compute bounding box after loading all meshes
+    computeBoundingBox();
 }
 
 void AnimatedModel::processNode(aiNode* node, const aiScene* scene) {
@@ -282,6 +288,28 @@ std::vector<std::shared_ptr<Texture2D>> AnimatedModel::loadMaterialTextures(aiMa
         std::cout << "Warning: Expected " << mat->GetTextureCount(type) << " textures of type " << typeName 
                   << " but loaded 0" << std::endl;
     }
-    
-    return textures;
+      return textures;
+}
+
+void AnimatedModel::computeBoundingBox() {
+    float minX = std::numeric_limits<float>::max();
+    float minY = std::numeric_limits<float>::max();
+    float minZ = std::numeric_limits<float>::max();
+    float maxX = -std::numeric_limits<float>::max();
+    float maxY = -std::numeric_limits<float>::max();
+    float maxZ = -std::numeric_limits<float>::max();
+
+    for (const auto& mesh : meshes) {
+        for (const auto& vertex : mesh->vertices) {
+            minX = std::min(vertex.Position.x, minX);
+            minY = std::min(vertex.Position.y, minY);
+            minZ = std::min(vertex.Position.z, minZ);
+            maxX = std::max(vertex.Position.x, maxX);
+            maxY = std::max(vertex.Position.y, maxY);
+            maxZ = std::max(vertex.Position.z, maxZ);
+        }
+    }
+
+    _boundingBox.min = glm::vec3(minX, minY, minZ);
+    _boundingBox.max = glm::vec3(maxX, maxY, maxZ);
 }

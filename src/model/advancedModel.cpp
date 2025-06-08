@@ -25,6 +25,9 @@ unsigned int TextureFromFile(const char *path, const std::string &directory, boo
 
     int width, height, nrComponents;
     std::cout << "filename: " << filename << std::endl;
+    
+    // Ensure consistent flip behavior for all textures
+    stbi_set_flip_vertically_on_load(false);
     unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
     if (data) {
         GLenum format;
