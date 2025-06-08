@@ -183,8 +183,7 @@ void FinalSceneApp::handleInput() {
                 (int)floor((playerPosition.y + 150) / 300.0f)
             );
             std::cout << "Entity defeated! Proceed to final area." << std::endl;
-        }
-    }
+        }    }
 
     // view movement
     if (_input.mouse.move.xNow != _input.mouse.move.xOld) {
@@ -196,10 +195,27 @@ void FinalSceneApp::handleInput() {
 
     if (_input.mouse.move.yNow != _input.mouse.move.yOld) {
         float mouse_movement_in_y_direction = _input.mouse.move.yNow - _input.mouse.move.yOld;
-        float delta = cameraRotateSpeed * mouse_movement_in_y_direction;
+        float delta = -cameraRotateSpeed * mouse_movement_in_y_direction;
 
-        _camera->transform.rotation = glm::angleAxis(-delta, _camera->transform.getRight()) * _camera->transform.rotation;
-    }    _input.forwardState();
+        // Limit vertical angle to prevent looking too far up or down
+        static float currentPitch = 0.0f;  // Track current pitch angle
+        const float maxPitchAngle = glm::radians(80.0f);  // Maximum pitch angle (80 degrees)
+        
+        // Calculate new pitch angle
+        float newPitch = currentPitch - delta;
+        
+        // Clamp pitch angle to prevent camera flipping
+        newPitch = glm::clamp(newPitch, -maxPitchAngle, maxPitchAngle);
+        
+        // Only apply rotation if within limits
+        if (newPitch != currentPitch) {
+            float actualDelta = currentPitch - newPitch;
+            currentPitch = newPitch;
+            _camera->transform.rotation = glm::angleAxis(actualDelta, _camera->transform.getRight()) * _camera->transform.rotation;
+        }
+    }
+
+    _input.forwardState();
 }
 
 void FinalSceneApp::renderFrame() {
@@ -317,8 +333,8 @@ void FinalSceneApp::updateState() {
             std::cout << _entityLogic.getEntityPos().x << ", " << _entityLogic.getEntityPos().y << std::endl;
             std::cout << playerPosition.x << ", " << playerPosition.y << std::endl;
             if (distance(_entityLogic.getEntityPos(), playerPosition) < EntityTriggleDist) {
-                puts("Lose: BeforeMita");
-                // gameState = GameState::LoseInterface;
+                // puts("Lose: BeforeMita");
+                gameState = GameState::LoseInterface;
             }
             mitaPos = glm::vec2(_animatedMita->transform.position.x, _animatedMita->transform.position.z);
             if (distance(mitaPos, playerPosition) < MitaTriggleDist) {
