@@ -252,35 +252,48 @@ std::vector<std::shared_ptr<Texture2D>> AnimatedModel::loadMaterialTextures(aiMa
         mat->GetTexture(type, i, &str);
         
         std::string filename = std::string(str.C_Str());
-        // std::string texturePath = directory + "/" + filename;
         std::string texturePath = filename;
         
         std::cout << "Attempting to load texture: " << texturePath << " (type: " << typeName << ")" << std::endl;
         
-        try {
-            auto texture = std::make_shared<ImageTexture2D>(texturePath);
-            textures.push_back(texture);
-            std::cout << "Successfully loaded texture: " << filename << std::endl;
-        } catch (const std::exception& e) {
-            std::cout << "Failed to load texture at path: " << texturePath << " - " << e.what() << std::endl;
-            
-            // Try alternative path formats
-            std::string altPath1 = directory + "\\" + filename;  // Windows path separator
-            std::string altPath2 = "resource/texture/" + filename;  // Common texture directory
-            
-            try {
-                auto texture = std::make_shared<ImageTexture2D>(altPath1);
-                textures.push_back(texture);
-                std::cout << "Successfully loaded texture with alternative path: " << altPath1 << std::endl;
-            } catch (const std::exception& e2) {
-                try {
-                    auto texture = std::make_shared<ImageTexture2D>(altPath2);
-                    textures.push_back(texture);
-                    std::cout << "Successfully loaded texture with alternative path: " << altPath2 << std::endl;
-                } catch (const std::exception& e3) {
-                    std::cout << "All texture loading attempts failed for: " << filename << std::endl;
-                }
+        // Helper function to extract filename from path
+        auto extractFilename = [](const std::string& path) -> std::string {
+            size_t lastSlash = path.find_last_of("/\\");
+            if (lastSlash != std::string::npos) {
+                return path.substr(lastSlash + 1);
             }
+            return path;
+        };
+        
+        // Extract just the filename without path
+        std::string baseFilename = extractFilename(filename);
+        
+        // List of paths to try in order
+        std::vector<std::string> pathsToTry = {
+            texturePath,                                    // Original path
+            directory + "/" + baseFilename,                 // Model directory + filename
+            directory + "\\" + baseFilename,                // Model directory + filename (Windows)
+            "resource/texture/" + baseFilename,             // Common texture directory
+            "resource/texture/ChibiMita.png",               // Specific fallback for Mita
+            baseFilename                                    // Just the filename
+        };
+        
+        bool textureLoaded = false;
+        for (const auto& pathToTry : pathsToTry) {
+            try {
+                auto texture = std::make_shared<ImageTexture2D>(pathToTry);
+                textures.push_back(texture);
+                std::cout << "Successfully loaded texture: " << pathToTry << std::endl;
+                textureLoaded = true;
+                break;
+            } catch (const std::exception& e) {
+                // Continue to next path
+                std::cout << "Failed to load texture at path: " << pathToTry << " - " << e.what() << std::endl;
+            }
+        }
+        
+        if (!textureLoaded) {
+            std::cout << "All texture loading attempts failed for: " << filename << std::endl;
         }
     }
     
@@ -288,7 +301,7 @@ std::vector<std::shared_ptr<Texture2D>> AnimatedModel::loadMaterialTextures(aiMa
         std::cout << "Warning: Expected " << mat->GetTextureCount(type) << " textures of type " << typeName 
                   << " but loaded 0" << std::endl;
     }
-      return textures;
+    return textures;
 }
 
 void AnimatedModel::computeBoundingBox() {
