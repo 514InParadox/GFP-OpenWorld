@@ -62,6 +62,9 @@ FinalSceneApp::FinalSceneApp(const Options &options) : Application(options) {
     startInterface.reset(new Interface(getAssetFullPath(startInterfaceImageAddr)));
     loseInterface.reset(new Interface(getAssetFullPath(loseInterfaceImageAddr)));
     winInterface.reset(new Interface(getAssetFullPath(winInterfaceImageAddr)));
+
+    // Init dialog
+    _dialog.reset(new Dialog("resource/text"));
 }
 
 FinalSceneApp::~FinalSceneApp() {
@@ -179,8 +182,7 @@ void FinalSceneApp::handleInput() {
                 (int)floor((playerPosition.y + 150) / 300.0f)
             );
             std::cout << "Entity defeated! Proceed to final area." << std::endl;
-        }
-    }
+        }    }
 
     // view movement
     if (_input.mouse.move.xNow != _input.mouse.move.xOld) {
@@ -192,10 +194,27 @@ void FinalSceneApp::handleInput() {
 
     if (_input.mouse.move.yNow != _input.mouse.move.yOld) {
         float mouse_movement_in_y_direction = _input.mouse.move.yNow - _input.mouse.move.yOld;
-        float delta = cameraRotateSpeed * mouse_movement_in_y_direction;
+        float delta = -cameraRotateSpeed * mouse_movement_in_y_direction;
 
-        _camera->transform.rotation = glm::angleAxis(-delta, _camera->transform.getRight()) * _camera->transform.rotation;
-    }    _input.forwardState();
+        // Limit vertical angle to prevent looking too far up or down
+        static float currentPitch = 0.0f;  // Track current pitch angle
+        const float maxPitchAngle = glm::radians(80.0f);  // Maximum pitch angle (80 degrees)
+        
+        // Calculate new pitch angle
+        float newPitch = currentPitch - delta;
+        
+        // Clamp pitch angle to prevent camera flipping
+        newPitch = glm::clamp(newPitch, -maxPitchAngle, maxPitchAngle);
+        
+        // Only apply rotation if within limits
+        if (newPitch != currentPitch) {
+            float actualDelta = currentPitch - newPitch;
+            currentPitch = newPitch;
+            _camera->transform.rotation = glm::angleAxis(actualDelta, _camera->transform.getRight()) * _camera->transform.rotation;
+        }
+    }
+
+    _input.forwardState();
 }
 
 void FinalSceneApp::renderFrame() {
@@ -312,7 +331,7 @@ void FinalSceneApp::updateState() {
         case GameState::BeforeMita:
             // Entity collision detection
             if (distance(_entityLogic.getEntityPos(), playerPosition) < EntityTriggleDist) {
-                puts("Lose: BeforeMita");
+                // puts("Lose: BeforeMita");
                 gameState = GameState::LoseInterface;
             }
             mitaPos = glm::vec2(_animatedMita->transform.position.x, _animatedMita->transform.position.z);
@@ -899,6 +918,41 @@ void FinalSceneApp::renderSceneToFramebuffer() {
             // TEST: Disable mita position output to see entity debug info clearly
             // std::cout << "draw mita at" << _animatedMita->transform.position.x << ", " << _animatedMita->transform.position.z << std::endl;
         }
+    }
+
+    // Render dialog during DuringMita state
+    if (!_dialog) {
+        std::cout << "123" << std::endl;
+    }
+    if (gameState == GameState::DuringMita && _dialog) {
+        // Use entity shader for dialog text rendering (it supports basic 3D model rendering)
+        _entityShader->use();
+        _entityShader->setUniformMat4("projection", projection);
+        _entityShader->setUniformMat4("view", view);
+        
+        // Set basic material properties for text
+        _entityShader->setUniformVec3("material.ambient", glm::vec3(0.3f));
+        _entityShader->setUniformVec3("material.diffuse", glm::vec3(1.0f));
+        _entityShader->setUniformVec3("material.specular", glm::vec3(0.5f));
+        _entityShader->setUniformVec3("material.color", glm::vec3(1.0f));
+        _entityShader->setUniformFloat("material.shininess", 32.0f);
+        
+        // Set lighting for dialog text
+        _entityShader->setUniformVec3("ambientLight.color", glm::vec3(1.0f));
+        _entityShader->setUniformFloat("ambientLight.intensity", 0.8f);
+        _entityShader->setUniformVec3("viewPosition", _camera->transform.position);
+        
+        // Disable texture for text models
+        _entityShader->setUniformBool("useTexture", false);
+        
+        // Get camera position and rotation for billboard effect
+        glm::vec3 cameraPos = _camera->transform.position;
+        glm::quat cameraRot = _camera->transform.rotation;
+        
+        // Draw dialog with camera-facing billboard effect
+        _dialog->draw(_deltaTime, _entityShader.get(), cameraPos, cameraRot);
+        
+        std::cout << "Rendered dialog during DuringMita state" << std::endl;
     }
 }
 
