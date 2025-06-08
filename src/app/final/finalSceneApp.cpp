@@ -65,6 +65,9 @@ FinalSceneApp::FinalSceneApp(const Options &options) : Application(options) {
 
     // Init dialog
     _dialog.reset(new Dialog("resource/text"));
+
+    // Init sound engine
+    _audioManager.reset(new AudioManager());
 }
 
 FinalSceneApp::~FinalSceneApp() {
@@ -121,6 +124,7 @@ void FinalSceneApp::handleInput() {
     // player movement
     glm::vec3 deltaPosition = glm::vec3(0.0f);
     glm::vec3 dbg3D_deltaPosition = glm::vec3(0.0f);
+    glm::vec2 playerPreviousPosition = glm::vec2(0.0f);
     if (_input.keyboard.keyStates[GLFW_KEY_W] != GLFW_RELEASE) {
         // Project camera front direction onto XZ plane (horizontal plane)
         glm::vec3 front = _camera->transform.getFront();
@@ -156,7 +160,7 @@ void FinalSceneApp::handleInput() {
         dbg3D_deltaPosition += (cameraMoveSpeed * _deltaTime) * right;
         // _camera->transform.position += (cameraMoveSpeed * _deltaTime) * horizontalRight;
     }
-
+    playerPreviousPosition = playerPosition;
     playerPosition = getCorrectPos(playerPosition, glm::vec2(deltaPosition.x, deltaPosition.z));
     _camera->transform.position = getCameraPos(playerPosition, glm::vec2(deltaPosition.x, deltaPosition.z), _deltaTime);
 
@@ -219,6 +223,17 @@ void FinalSceneApp::handleInput() {
     }
 
     _input.forwardState();
+
+    // update audio state
+    _audioManager->updateEntitySound(_entityLogic, playerPosition);
+    _audioManager->updateListenerPosition(_camera->transform.position, 
+                                          _camera->transform.getFront(),
+                                          _camera->transform.getUp());
+    _audioManager->updatePlayerFootsteps(playerPosition,
+                                         playerPreviousPosition,
+                                         cameraMoveSpeed == playerMoveSpeedFast,
+                                         0.8f,
+                                         _deltaTime);
 }
 
 void FinalSceneApp::renderFrame() {
