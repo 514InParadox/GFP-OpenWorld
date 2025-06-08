@@ -32,9 +32,7 @@ void dialogExample() {
         dialogSystem.proceed(deltaTime);
         
         // Example of drawing (in a real game, this would be in your render loop)
-        std::cout << "Current dialog: " << dialogSystem.getCurrentDialogIndex() 
-                  << "/" << dialogSystem.getTotalDialogCount() 
-                  << " Progress: " << (dialogSystem.getCurrentDialogProgress() * 100) << "%" << std::endl;
+        std::cout << "Dialog system active. Total text models loaded: " << dialogSystem.getTotalDialogCount() << std::endl;
         
         // Draw current dialog texts (no shader in this console example)
         dialogSystem.drawDialogBox(nullptr);
