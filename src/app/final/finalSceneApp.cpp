@@ -317,6 +317,7 @@ void FinalSceneApp::updateFrameTime() {
 void FinalSceneApp::updateState() {
     glm::vec2 mitaPos;
     std::pair<int, int> mapLattice;
+    static float during_debug_remain_time;
     switch (gameState) {
         case GameState::BeforeMita:
             std::cout << _entityLogic.getEntityPos().x << ", " << _entityLogic.getEntityPos().y << std::endl;
@@ -328,13 +329,16 @@ void FinalSceneApp::updateState() {
             mitaPos = glm::vec2(_mita->transform.position.x, _mita->transform.position.z);
             if (distance(mitaPos, playerPosition) < MitaTriggleDist) {
                 gameState = GameState::DuringMita;
+                during_debug_remain_time = 5;
                 // _dialog.Start();
             }
             break;
         case GameState::DuringMita:
-            _dialog->proceed(_deltaTime);
-            if (_dialog->isFinished()) {
-            // if (true) {
+            // _dialog->proceed(_deltaTime);
+            // if (_dialog->isFinished()) {
+            if (during_debug_remain_time > 0) {
+                during_debug_remain_time -= _deltaTime;
+            } else {
                 gameState = GameState::AfterMita;
             }
             break;
@@ -527,11 +531,11 @@ void FinalSceneApp::renderSceneToFramebuffer() {
     } else if (_controlMode == ControlMode::Mita) {
         *controlledPosition = glm::vec3(mapLattice.first * 300 - 150 + mitaCoord.first, 0.0f, mapLattice.second * 300 - 150 + mitaCoord.second);
     }
-    
-    // Apply positions to models
+      // Apply positions to models
     _entity->transform.position = entityPosition;
     _entity->transform.scale = glm::vec3(0.3f);
     _mita->transform.position = mitaPosition;
+    _mita->transform.scale = glm::vec3(50.0f); // Increased scale for better visibility
 
     std::cout << "mita: " << mitaPosition.x << ", " << mitaPosition.z << std::endl;
 
@@ -653,7 +657,7 @@ void FinalSceneApp::renderSceneToFramebuffer() {
     // draw gun
     if (gameState == GameState::DuringMita) {
 
-    } else if (gameState == GameState::AfterMita || gameState == GameState::BeforeMita) {
+    } else if (gameState == GameState::AfterMita || gameState == GameState::AfterEntity) {
         _gunShader->use();
         _gunShader->setUniformMat4("projection", projection);
         _gunShader->setUniformMat4("view", view);
@@ -759,24 +763,38 @@ void FinalSceneApp::renderSceneToFramebuffer() {
         
         // Set camera position for lighting calculations
         _mitaShader->setUniformVec3("viewPosition", _camera->transform.position);
-        
-        // Set material properties for mita (slightly different from entity)
-        _mitaShader->setUniformVec3("material.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
-        _mitaShader->setUniformVec3("material.diffuse", glm::vec3(0.6f, 0.6f, 0.6f));
-        _mitaShader->setUniformVec3("material.specular", glm::vec3(0.3f, 0.3f, 0.3f));
-        _mitaShader->setUniformVec3("material.color", glm::vec3(0.8f, 0.8f, 0.8f));
-        _mitaShader->setUniformFloat("material.shininess", 32.0f);
-        
-        // Set ambient light (increased intensity for better visibility)
+          // Set material properties for mita (enhanced for better visibility)
+        _mitaShader->setUniformVec3("material.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+        _mitaShader->setUniformVec3("material.diffuse", glm::vec3(0.8f, 0.8f, 0.8f));
+        _mitaShader->setUniformVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+        _mitaShader->setUniformVec3("material.color", glm::vec3(1.0f, 1.0f, 1.0f));
+        _mitaShader->setUniformFloat("material.shininess", 64.0f);
+          // Set ambient light (reduced intensity to prevent overexposure)
         _mitaShader->setUniformVec3("ambientLight.color", glm::vec3(1.0f, 1.0f, 1.0f));
-        _mitaShader->setUniformFloat("ambientLight.intensity", 3.2f);
+        _mitaShader->setUniformFloat("ambientLight.intensity", 0.8f);
         
         // Set mita's dynamic point lights
         setMitaPointLightsUniforms(_mitaShader.get());
-        
-        // Enable texture for mita
+          // Enable texture for mita
         _mitaShader->setUniformBool("useTexture", true);
         _mitaShader->setUniformInt("diffuseTexture", 0);
+        
+        // Ensure proper OpenGL state for mita rendering
+        // glEnable(GL_DEPTH_TEST);
+        // glDepthFunc(GL_LESS);
+        // glEnable(GL_CULL_FACE);
+        // glCullFace(GL_BACK);
+        
+        // Debug: Output mita transformation matrix
+        static float mitaDebugTimer = 0.0f;
+        mitaDebugTimer += _deltaTime;
+        if (mitaDebugTimer >= 3.0f) {
+            glm::mat4 mitaMatrix = _mita->transform.getLocalMatrix();
+            std::cout << "Mita transform matrix position: (" 
+                      << mitaMatrix[3][0] << ", " << mitaMatrix[3][1] << ", " << mitaMatrix[3][2] << ")" << std::endl;
+            std::cout << "Mita scale: " << _mita->transform.scale.x << std::endl;
+            mitaDebugTimer = 0.0f;
+        }
         
         // Debug: Output number of lights being used for mita
         static float mitaLightCountTimer = 0.0f;
@@ -787,6 +805,7 @@ void FinalSceneApp::renderSceneToFramebuffer() {
         }
         
         _mita->draw();
+        std::cout << "draw mita at" << _mita->transform.position.x << ", " << _mita->transform.position.z << std::endl;
     }
 }
 

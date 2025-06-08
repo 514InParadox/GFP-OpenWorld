@@ -4,8 +4,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 // Test model and animation paths
-const std::string modelPath = "resource/model/Mita_motion.fbx";
-const std::string animationPath = "resource/model/Mita_motion.fbx";
+const std::string modelPath = "resource/model/Howler_motion.fbx";
+const std::string animationPath = "resource/model/Howler_motion.fbx";
 
 // Alternative test models (if vampire model is not available)
 const std::vector<std::string> alternativeModels = {
