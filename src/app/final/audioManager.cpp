@@ -91,12 +91,12 @@ void AudioManager::init()
     _audioEngine->setSoundVolume(0.8f);
 
     // 预加载并初始化实体音效
-    _entityPatrolSound = _audioEngine->play2D(getAudioAssetPath("entity_patrol.mp3").c_str(),
+    _entityPatrolSound = _audioEngine->play2D(getAudioAssetPath("entity_patrol.wav").c_str(),
                                               true, true, true);         // 循环, 暂停开始, 追踪
     if (_entityPatrolSound)
         _entityPatrolSound->setVolume(1.0f); // 设置为最大音量，但开始时暂停
 
-    _entityChaseSound = _audioEngine->play2D(getAudioAssetPath("entity_chase.mp3").c_str(),
+    _entityChaseSound = _audioEngine->play2D(getAudioAssetPath("entity_chase.wav").c_str(),
                                              true, true, true);         // 循环, 暂停开始, 追踪
     if (_entityChaseSound)
         _entityChaseSound->setVolume(1.0f); // 设置为最大音量，但开始时暂停
