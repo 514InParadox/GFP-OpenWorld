@@ -15,8 +15,12 @@ struct DialogConfig {
     float baseDisplayTime = 2.0f;        // Base time for each dialog group
     float timePerText = 1.0f;             // Additional time per text fragment
     float fadeOutTime = 2.0f;             // Extra time for fade out effect
+    float lineSpacing = 0.4f;             // Vertical spacing between lines
     bool autoAdvance = true;              // Whether to auto-advance dialogs
     bool loopDialogs = false;             // Whether to loop through dialogs
+    float charSpacing = 0.1f;             // Horizontal spacing between the start of one char to the start of the next
+    float lineMaxWidth = 5.0f;            // Maximum width of a line before wrapping
+    glm::vec3 textScale = glm::vec3(0.2f); // Uniform scale for all text models
 };
 
 // 维护对话
@@ -39,11 +43,12 @@ public:
 
     // Update and draw all dialogs
     void draw(const float &deltaTime, GLSLProgram* shader);
+    void draw(const float &deltaTime, GLSLProgram* shader, const glm::vec3& cameraPos);
     
     // Get current dialog info
-    size_t getCurrentDialogIndex() const;
+    // size_t getCurrentDialogIndex() const; // Removed
     size_t getTotalDialogCount() const;
-    float getCurrentDialogProgress() const;
+    // float getCurrentDialogProgress() const; // Removed
     
     // Manual control
     void forceNextDialog();
@@ -62,11 +67,8 @@ public:
     glm::vec3 getBasePosition() const;
     
 private:
-    // Move next dialog group from preLoad to dialogBox
-    bool nextDialog();
-
-    // Check if current dialog should finish based on time
-    bool shouldFinishCurrentDialog() const;
+    // bool nextDialog(); // Removed
+    // bool shouldFinishCurrentDialog() const; // Removed
     
     // Move texts from dialogBox to dropText for cleanup
     void dropCurrentDialog();
@@ -74,11 +76,8 @@ private:
     // Update text lifetimes and remove expired texts
     void updateTextLifetimes(const float &deltaTime);
 
-    // 预加载的对话组，每组包含一句对话的多个文本片段
-    std::vector<std::vector<std::unique_ptr<Text>>> preLoad;
-
-    // 每组对话的持续时间
-    std::vector<float> continueTime;
+    // std::vector<std::vector<std::unique_ptr<Text>>> preLoad; // Removed
+    // std::vector<float> continueTime; // Removed
 
     // 在对话框内的当前显示文本
     std::vector<std::unique_ptr<Text>> dialogBox;
@@ -86,11 +85,8 @@ private:
     // 在对话框外准备销毁的文本
     std::vector<std::unique_ptr<Text>> dropText;
     
-    // 当前对话的计时器
-    float _currentDialogTime;
-    
-    // 当前对话组的索引
-    size_t _currentDialogIndex;
+    // float _currentDialogTime; // Removed
+    // size_t _currentDialogIndex; // Removed
     
     // 对话是否已开始
     bool _started;
