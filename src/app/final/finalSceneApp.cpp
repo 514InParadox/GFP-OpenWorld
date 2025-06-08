@@ -34,12 +34,12 @@ FinalSceneApp::FinalSceneApp(const Options &options) : Application(options) {
     _entity.reset(new AdvancedModel(getAssetFullPath(entityPath)));
     _mita.reset(new AdvancedModel(getAssetFullPath(mitaPath)));
     _mita->transform.scale = glm::vec3(0.5f);
-    // 初始化实体位置和速度
-    _entityLogic.setEntityPos(glm::vec2(-145.0f, -145.0f));
-    _entityLogic.speed = entityMoveSpeedSlow;
 
     // init map
     _map.reset(new AdvancedModel(getAssetFullPath(mapPath)));
+
+    // init light
+    _light.reset(new AdvancedModel(getAssetFullPath(lightPath)));
 
     // init skybox
     std::vector<std::string> _skyboxTexturePaths;
@@ -49,6 +49,10 @@ FinalSceneApp::FinalSceneApp(const Options &options) : Application(options) {
     _skybox.reset(new SkyBox(_skyboxTexturePaths));    // init shader
     initShader();
     
+    // Initialize glow effect
+    initGlowFramebuffers();
+    initScreenQuad();
+    
     // Initialize frame time
     _lastFrameTime = std::chrono::high_resolution_clock::now();
 
@@ -56,6 +60,13 @@ FinalSceneApp::FinalSceneApp(const Options &options) : Application(options) {
     startInterface.reset(new Interface(getAssetFullPath(startInterfaceImageAddr)));
     loseInterface.reset(new Interface(getAssetFullPath(loseInterfaceImageAddr)));
     winInterface.reset(new Interface(getAssetFullPath(winInterfaceImageAddr)));
+
+    // 初始化对话系统，加载 resource/text/ 目录下的文本模型
+    _dialog = std::make_unique<Dialog>(getAssetFullPath(dialogAssetPath));
+}
+
+FinalSceneApp::~FinalSceneApp() {
+    cleanupGlowFramebuffers();
 }
 
 // camera 在平面上移动
@@ -92,6 +103,13 @@ void FinalSceneApp::handleInput() {
     if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
         glfwSetWindowShouldClose(_window, true);
         return;
+    }
+
+    // Toggle control mode with P key
+    if (_input.keyboard.keyStates[GLFW_KEY_P] == GLFW_PRESS) {
+        _controlMode = (_controlMode == ControlMode::Mita) ? ControlMode::Entity : ControlMode::Mita;
+        std::cout << "Control mode switched to: " << 
+                     ((_controlMode == ControlMode::Mita) ? "Mita" : "Entity") << std::endl;
     }    
 
     // player movement
@@ -136,11 +154,10 @@ void FinalSceneApp::handleInput() {
     playerPosition = getCorrectPos(playerPosition, glm::vec2(deltaPosition.x, deltaPosition.z));
     _camera->transform.position = getCameraPos(playerPosition, glm::vec2(deltaPosition.x, deltaPosition.z), _deltaTime);
 
-    // 更新实体位置
-    _entityLogic.move(playerPosition, _deltaTime);
-    _entity->transform.position = glm::vec3(_entityLogic.getEntityPos().x, 0.5f, _entityLogic.getEntityPos().y);
+    // std::cout << _camera->transform.position.y << std::endl;
 
     // _camera->transform.position += dbg3D_deltaPosition;
+    // playerPosition = glm::vec2(_camera->transform.position.x, _camera->transform.position.z);
 
     // view movement
     if (_input.mouse.move.xNow != _input.mouse.move.xOld) {
@@ -193,73 +210,23 @@ void FinalSceneApp::renderFrame() {
         return;
     }
 
-    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-
-    glm::mat4 projection = _camera->getProjectionMatrix();
-    glm::mat4 view = _camera->getViewMatrix();
-    
-    _skybox->draw(projection, view);
-
-    glm::vec2 playerPosition = glm::vec2(_camera->transform.position.x, _camera->transform.position.z);
-
-    // draw map
-
-    std::pair<int, int> mapLattice = std::make_pair(
-        (int)floor((playerPosition.x + 150) / 300.0f),
-        (int)floor((playerPosition.y + 150) / 300.0f)
-    );
-
-    //_entity->transform.position = glm::vec3(-145, 0.5f, -145);
-    _entity->transform.position = glm::vec3(_entityLogic.getEntityPos().x, 0.5f, _entityLogic.getEntityPos().y);
-    _entity->transform.scale = glm::vec3(0.3f);
-
-    _mita->transform.position = glm::vec3(mapLattice.first * 300.0f - 150.0f + mitaCoord.first, 0.0f, mapLattice.second * 300.0f - 150.0f + mitaCoord.second);
-
-    _mapShader->use();
-
-    _mapShader->setUniformMat4("projection", projection);
-    _mapShader->setUniformMat4("view", view);
-    // _mapShader->setUniformMat4("model", _map->transform.getLocalMatrix());
-
-    // _map->draw();
-
-    if (gameState != GameState::AfterEntity) {
-        for (int d = 0; d <= 4; ++d) {
-            int tx = dx[d] + mapLattice.first,
-            ty = dy[d] + mapLattice.second;
-            glm::mat4 mapPos = glm::translate(glm::mat4(1.0f), glm::vec3(tx * 300.0f - 150, 0.0f, ty * 300.0f - 150));
-            _mapShader->setUniformMat4("model", mapPos);
-            _map->draw();
-        }
+    // Use glow rendering pipeline
+    if (_enableGlow) {
+        // 1. Render scene to framebuffer
+        renderSceneToFramebuffer();
+        
+        // 2. Extract bright colors
+        renderBrightExtraction();
+        
+        // 3. Apply blur to bright colors
+        renderBlur();
+        
+        // 4. Combine original scene with blurred bright colors
+        renderFinalComposition();
     } else {
-        for (int d = 0; d <= 0; ++d) {
-            int tx = dx[d] + mapLattice.first,
-            ty = dy[d] + mapLattice.second;
-            glm::mat4 mapPos = glm::translate(glm::mat4(1.0f), glm::vec3(tx * 300.0f - 150, 0.0f, ty * 300.0f - 150));
-            _mapShader->setUniformMat4("model", mapPos);
-            _map->draw();
-        }
-    }
-
-    // draw entity
-    if (gameState == GameState::BeforeMita || gameState == GameState::AfterMita) {
-        _entityShader->use();
-        _entityShader->setUniformMat4("projection", projection);
-        _entityShader->setUniformMat4("view", view);
-        _entityShader->setUniformMat4("model", _entity->transform.getLocalMatrix());
-        _entity->draw();
-    }
-
-    // draw mita
-    if (gameState == GameState::BeforeMita || gameState == GameState::DuringMita) {
-        _mitaShader->use();
-        _mitaShader->setUniformMat4("projection", projection);
-        _mitaShader->setUniformMat4("view", view);
-        _mitaShader->setUniformMat4("model", _mita->transform.getLocalMatrix());
-        _mitaShader->setUniformInt("mapKd", 0);
-        _mita->draw();
+        // Render directly to screen without glow
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        renderSceneToFramebuffer();
     }
 }
 
@@ -280,9 +247,30 @@ void FinalSceneApp::initShader() {
     _mapShader->link();    
     
     _mitaShader.reset(new GLSLProgram);
-    _mitaShader->attachVertexShaderFromFile(getAssetFullPath(texVertexShaderAddr));
-    _mitaShader->attachFragmentShaderFromFile(getAssetFullPath(texFragmentShaderAddr));
+    _mitaShader->attachVertexShaderFromFile(getAssetFullPath(mitaVertexShaderAddr));
+    _mitaShader->attachFragmentShaderFromFile(getAssetFullPath(mitaFragmentShaderAddr));
     _mitaShader->link();
+
+    _emissiveShader.reset(new GLSLProgram);
+    _emissiveShader->attachVertexShaderFromFile(getAssetFullPath(emissiveVertexShaderAddr));
+    _emissiveShader->attachFragmentShaderFromFile(getAssetFullPath(emissiveFragmentShaderAddr));
+    _emissiveShader->link();
+
+    // Initialize glow effect shaders
+    _extractBrightShader.reset(new GLSLProgram);
+    _extractBrightShader->attachVertexShaderFromFile(getAssetFullPath(screenQuadVertexShaderAddr));
+    _extractBrightShader->attachFragmentShaderFromFile(getAssetFullPath(extractBrightShaderAddr));
+    _extractBrightShader->link();
+    
+    _blurShader.reset(new GLSLProgram);
+    _blurShader->attachVertexShaderFromFile(getAssetFullPath(screenQuadVertexShaderAddr));
+    _blurShader->attachFragmentShaderFromFile(getAssetFullPath(blurShaderAddr));
+    _blurShader->link();
+    
+    _combineShader.reset(new GLSLProgram);
+    _combineShader->attachVertexShaderFromFile(getAssetFullPath(screenQuadVertexShaderAddr));
+    _combineShader->attachFragmentShaderFromFile(getAssetFullPath(combineShaderAddr));
+    _combineShader->link();
 
     _interfaceShader.reset(new GLSLProgram);
     _interfaceShader->attachVertexShaderFromFile(getAssetFullPath(interfaceVertexShaderAddr));
@@ -312,12 +300,15 @@ void FinalSceneApp::updateState() {
             mitaPos = glm::vec2(_mita->transform.position.x, _mita->transform.position.z);
             if (distance(mitaPos, playerPosition) < MitaTriggleDist) {
                 gameState = GameState::DuringMita;
-                // _dialog.Start();
+                if (_dialog) {
+                    _dialog->resetDialog();
+                    glm::vec3 dialogPos = _mita->transform.position + glm::vec3(0.0f, 1.8f, 0.0f);
+                    _dialog->setBasePosition(dialogPos);
+                }
             }
             break;
         case GameState::DuringMita:
-            // if (_dialog.IsFinish()) {
-            if (false) {
+        if (_dialog && _dialog->isFinished()) {
                 gameState = GameState::AfterMita;
             }
             break;
@@ -355,5 +346,591 @@ void FinalSceneApp::run() {
 
         glfwSwapBuffers(_window);
         glfwPollEvents();
+    }
+}
+
+void FinalSceneApp::initGlowFramebuffers() {
+    // Scene framebuffer
+    glGenFramebuffers(1, &_sceneFramebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, _sceneFramebuffer);
+    
+    // Scene color texture
+    glGenTextures(1, &_sceneColorTexture);
+    glBindTexture(GL_TEXTURE_2D, _sceneColorTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, _windowWidth, _windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _sceneColorTexture, 0);
+    
+    // Scene depth texture
+    glGenTextures(1, &_sceneDepthTexture);
+    glBindTexture(GL_TEXTURE_2D, _sceneDepthTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, _windowWidth, _windowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _sceneDepthTexture, 0);
+    
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "Scene framebuffer not complete!" << std::endl;
+    }
+    
+    // Bright extraction framebuffer
+    glGenFramebuffers(1, &_brightFramebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, _brightFramebuffer);
+    
+    glGenTextures(1, &_brightColorTexture);
+    glBindTexture(GL_TEXTURE_2D, _brightColorTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, _windowWidth, _windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _brightColorTexture, 0);
+    
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "Bright framebuffer not complete!" << std::endl;
+    }
+    
+    // Blur framebuffers
+    glGenFramebuffers(2, _blurFramebuffers);
+    glGenTextures(2, _blurColorTextures);
+    
+    for (int i = 0; i < 2; i++) {
+        glBindFramebuffer(GL_FRAMEBUFFER, _blurFramebuffers[i]);
+        glBindTexture(GL_TEXTURE_2D, _blurColorTextures[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, _windowWidth, _windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _blurColorTextures[i], 0);
+        
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            std::cerr << "Blur framebuffer " << i << " not complete!" << std::endl;
+        }
+    }
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void FinalSceneApp::initScreenQuad() {
+    float quadVertices[] = {
+        // positions   // texCoords
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+        
+        -1.0f,  1.0f,  0.0f, 1.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+         1.0f,  1.0f,  1.0f, 1.0f
+    };
+    
+    glGenVertexArrays(1, &_quadVAO);
+    glGenBuffers(1, &_quadVBO);
+    glBindVertexArray(_quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, _quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glBindVertexArray(0);
+}
+
+void FinalSceneApp::renderSceneToFramebuffer() {
+    // Bind scene framebuffer (or default framebuffer if glow is disabled)
+    if (_enableGlow) {
+        glBindFramebuffer(GL_FRAMEBUFFER, _sceneFramebuffer);
+    } else {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+    glViewport(0, 0, _windowWidth, _windowHeight);
+    
+    // Clear
+    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+
+    glm::mat4 projection = _camera->getProjectionMatrix();
+    glm::mat4 view = _camera->getViewMatrix();
+    
+    _skybox->draw(projection, view);
+
+    glm::vec2 playerPosition = glm::vec2(_camera->transform.position.x, _camera->transform.position.z);
+
+    // draw map
+    std::pair<int, int> mapLattice = std::make_pair(
+        (int)floor((playerPosition.x + 150) / 300.0f),
+        (int)floor((playerPosition.y + 150) / 300.0f)
+    );
+
+    // Original positions (commented for testing)
+    // _entity->transform.position = glm::vec3(-145, 0.5f, -145);
+    // _entity->transform.scale = glm::vec3(0.3f);
+    // _mita->transform.position = glm::vec3(mapLattice.first * 300.0f - 150.0f + mitaCoord.first, 0.0f, mapLattice.second * 300.0f - 150.0f + mitaCoord.second);
+
+    // Manual control with IJKL keys (switchable between mita and entity)
+    static glm::vec3 mitaPosition(-144.0f, 0.0f, -144.0f); // Initial mita position
+    static glm::vec3 entityPosition(-126.0f, 1.0f, -121.0f); // Initial entity position
+    float moveSpeed = 3.0f; // Units per second
+    
+    // Movement controls (IJKL keys) - controlled object depends on _controlMode
+    glm::vec3* controlledPosition = (_controlMode == ControlMode::Mita) ? &mitaPosition : &entityPosition;
+    
+    if (_input.keyboard.keyStates[GLFW_KEY_I] != GLFW_RELEASE) {
+        controlledPosition->z -= moveSpeed * _deltaTime; // Move forward (negative Z)
+    }
+    if (_input.keyboard.keyStates[GLFW_KEY_K] != GLFW_RELEASE) {
+        controlledPosition->z += moveSpeed * _deltaTime; // Move backward (positive Z)
+    }
+    if (_input.keyboard.keyStates[GLFW_KEY_J] != GLFW_RELEASE) {
+        controlledPosition->x -= moveSpeed * _deltaTime; // Move left (negative X)
+    }
+    if (_input.keyboard.keyStates[GLFW_KEY_L] != GLFW_RELEASE) {
+        controlledPosition->x += moveSpeed * _deltaTime; // Move right (positive X)
+    }
+    
+    // Apply positions to models
+    _entity->transform.position = entityPosition;
+    _entity->transform.scale = glm::vec3(0.3f);
+    _mita->transform.position = mitaPosition;
+
+    // Debug output for mita and entity positions and game state
+    static float debugTimer = 0.0f;
+    debugTimer += _deltaTime;
+    if (debugTimer >= 2.0f) { // Output debug info every 2 seconds
+        std::cout << "=== Debug Info ===" << std::endl;
+        std::cout << "Control mode: " << ((_controlMode == ControlMode::Mita) ? "Mita" : "Entity") << std::endl;
+        
+        std::cout << "Mita position: (" << std::fixed << std::setprecision(3) 
+                  << _mita->transform.position.x << ", " 
+                  << _mita->transform.position.y << ", " 
+                  << _mita->transform.position.z << ")" << std::endl;
+        
+        std::cout << "Entity position: (" << std::fixed << std::setprecision(3) 
+                  << _entity->transform.position.x << ", " 
+                  << _entity->transform.position.y << ", " 
+                  << _entity->transform.position.z << ")" << std::endl;
+        
+        std::cout << "Camera position: (" << std::fixed << std::setprecision(3) 
+                  << _camera->transform.position.x << ", " 
+                  << _camera->transform.position.y << ", " 
+                  << _camera->transform.position.z << ")" << std::endl;
+        
+        // Output current game state
+        const char* stateNames[] = {"StartInterface", "BeforeMita", "DuringMita", "AfterMita", "AfterEntity", "LoseInterface", "WinInterface"};
+        std::cout << "Current game state: " << stateNames[static_cast<int>(gameState)] << std::endl;
+        
+        debugTimer = 0.0f;
+    }
+
+    _mapShader->use();
+    _mapShader->setUniformMat4("projection", projection);
+    _mapShader->setUniformMat4("view", view);
+
+    if (gameState != GameState::AfterEntity) {
+        for (int d = 0; d <= 4; ++d) {
+            int tx = dx[d] + mapLattice.first,
+            ty = dy[d] + mapLattice.second;
+            glm::mat4 mapPos = glm::translate(glm::mat4(1.0f), glm::vec3(tx * 300.0f - 150, 0.0f, ty * 300.0f - 150));
+            _mapShader->setUniformMat4("model", mapPos);
+            _map->draw();
+        }
+    } else {
+        for (int d = 0; d <= 0; ++d) {
+            int tx = dx[d] + mapLattice.first,
+            ty = dy[d] + mapLattice.second;
+            glm::mat4 mapPos = glm::translate(glm::mat4(1.0f), glm::vec3(tx * 300.0f - 150, 0.0f, ty * 300.0f - 150));
+            _mapShader->setUniformMat4("model", mapPos);
+            _map->draw();
+        }
+    }
+
+    // draw light (model itself has height, so place at y=0.0f)
+    _emissiveShader->use();
+    _emissiveShader->setUniformMat4("projection", projection);
+    _emissiveShader->setUniformMat4("view", view);
+    
+    // Set emissive material properties for bright white light
+    _emissiveShader->setUniformVec3("material.color", glm::vec3(1.0f, 1.0f, 0.9f)); // Warm white light
+    _emissiveShader->setUniformFloat("material.intensity", 1.5f); // Moderate intensity for glow effect
+    
+    for (int d = 0; d <= 4; ++d) {
+        int tx = dx[d] + mapLattice.first,
+        ty = dy[d] + mapLattice.second;
+        glm::mat4 lightPos = glm::translate(glm::mat4(1.0f), glm::vec3(tx * 300.0f - 150, 0.0f, ty * 300.0f - 150));
+        _emissiveShader->setUniformMat4("model", lightPos);
+        _light->draw();
+    }
+
+    // Update dynamic point lights based on player position and map data
+    updateDynamicPointLights();
+    
+    // Update mita point lights based on mita position and map data
+    updateMitaPointLights();
+
+    // draw entity
+    if (gameState == GameState::BeforeMita || gameState == GameState::AfterMita || gameState == GameState::DuringMita) {
+        _entityShader->use();
+        _entityShader->setUniformMat4("projection", projection);
+        _entityShader->setUniformMat4("view", view);
+        _entityShader->setUniformMat4("model", _entity->transform.getLocalMatrix());
+        
+        // Set camera position for lighting calculations
+        _entityShader->setUniformVec3("viewPosition", _camera->transform.position);
+        
+        // Set material properties (reduced reflectivity to prevent over-brightness)
+        _entityShader->setUniformVec3("material.ambient", glm::vec3(0.05f, 0.05f, 0.05f));
+        _entityShader->setUniformVec3("material.diffuse", glm::vec3(0.4f, 0.4f, 0.4f));
+        _entityShader->setUniformVec3("material.specular", glm::vec3(0.2f, 0.2f, 0.2f));
+        _entityShader->setUniformVec3("material.color", glm::vec3(0.7f, 0.7f, 0.7f));
+        _entityShader->setUniformFloat("material.shininess", 64.0f);
+        
+        // Set ambient light
+        _entityShader->setUniformVec3("ambientLight.color", glm::vec3(1.0f, 1.0f, 1.0f));
+        _entityShader->setUniformFloat("ambientLight.intensity", 0.2f);
+        
+        // Set dynamic point lights
+        setPointLightsUniforms(_entityShader.get());
+        
+        // Debug: Output number of lights being used
+        static float lightCountTimer = 0.0f;
+        lightCountTimer += _deltaTime;
+        if (lightCountTimer >= 2.0f) {
+            std::cout << "Setting " << _dynamicPointLights.size() << " point lights to entity shader" << std::endl;
+            lightCountTimer = 0.0f;
+        }
+        
+        _entity->draw();
+    }
+
+    // draw mita
+    if (gameState == GameState::BeforeMita || gameState == GameState::DuringMita) {
+        _mitaShader->use();
+        _mitaShader->setUniformMat4("projection", projection);
+        _mitaShader->setUniformMat4("view", view);
+        _mitaShader->setUniformMat4("model", _mita->transform.getLocalMatrix());
+        
+        // Set camera position for lighting calculations
+        _mitaShader->setUniformVec3("viewPosition", _camera->transform.position);
+        
+        // Set material properties for mita (slightly different from entity)
+        _mitaShader->setUniformVec3("material.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
+        _mitaShader->setUniformVec3("material.diffuse", glm::vec3(0.6f, 0.6f, 0.6f));
+        _mitaShader->setUniformVec3("material.specular", glm::vec3(0.3f, 0.3f, 0.3f));
+        _mitaShader->setUniformVec3("material.color", glm::vec3(0.8f, 0.8f, 0.8f));
+        _mitaShader->setUniformFloat("material.shininess", 32.0f);
+        
+        // Set ambient light (increased intensity for better visibility)
+        _mitaShader->setUniformVec3("ambientLight.color", glm::vec3(1.0f, 1.0f, 1.0f));
+        _mitaShader->setUniformFloat("ambientLight.intensity", 3.2f);
+        
+        // Set mita's dynamic point lights
+        setMitaPointLightsUniforms(_mitaShader.get());
+        
+        // Enable texture for mita
+        _mitaShader->setUniformBool("useTexture", true);
+        _mitaShader->setUniformInt("diffuseTexture", 0);
+        
+        // Debug: Output number of lights being used for mita
+        static float mitaLightCountTimer = 0.0f;
+        mitaLightCountTimer += _deltaTime;
+        if (mitaLightCountTimer >= 2.0f) {
+            std::cout << "Setting " << _mitaPointLights.size() << " point lights to mita shader" << std::endl;
+            mitaLightCountTimer = 0.0f;
+        }
+        
+        _mita->draw();
+    }
+    
+    // 在米塔说话时绘制对话文本
+    if (gameState == GameState::DuringMita && _dialog) {
+        _texShader->use();
+        _texShader->setUniformMat4("projection", projection);
+        _texShader->setUniformMat4("view", view);
+
+        glm::vec3 dialogPos = _mita->transform.position + glm::vec3(0.0f, 1.8f, 0.0f);
+        _dialog->setBasePosition(dialogPos);
+
+        _dialog->draw(_deltaTime, _texShader.get());
+    }
+}
+
+void FinalSceneApp::renderBrightExtraction() {
+    // Bind bright extraction framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, _brightFramebuffer);
+    glViewport(0, 0, _windowWidth, _windowHeight);
+    glDisable(GL_DEPTH_TEST);
+    
+    // Clear
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+    // Use extract bright shader
+    _extractBrightShader->use();
+    
+    // Bind scene texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _sceneColorTexture);
+    _extractBrightShader->setUniformInt("sceneMap", 0);
+    
+    // Render screen quad
+    glBindVertexArray(_quadVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+}
+
+void FinalSceneApp::renderBlur() {
+    bool horizontal = true;
+    bool first_iteration = true;
+    int amount = 10; // Number of blur passes
+    
+    _blurShader->use();
+    
+    for (int i = 0; i < amount; i++) {
+        glBindFramebuffer(GL_FRAMEBUFFER, _blurFramebuffers[horizontal]);
+        glViewport(0, 0, _windowWidth, _windowHeight);
+        glDisable(GL_DEPTH_TEST);
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        _blurShader->setUniformBool("horizontal", horizontal);
+        
+        // Bind texture
+        glActiveTexture(GL_TEXTURE0);
+        if (first_iteration) {
+            glBindTexture(GL_TEXTURE_2D, _brightColorTexture);
+        } else {
+            glBindTexture(GL_TEXTURE_2D, _blurColorTextures[!horizontal]);
+        }
+        _blurShader->setUniformInt("image", 0);
+        
+        // Render screen quad
+        glBindVertexArray(_quadVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindVertexArray(0);
+        
+        horizontal = !horizontal;
+        if (first_iteration) {
+            first_iteration = false;
+        }
+    }
+}
+
+void FinalSceneApp::renderFinalComposition() {
+    // Bind default framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, _windowWidth, _windowHeight);
+    glDisable(GL_DEPTH_TEST);
+    
+    // Clear
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+    // Use combine shader
+    _combineShader->use();
+    
+    // Bind textures
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _sceneColorTexture);
+    _combineShader->setUniformInt("sceneTexture", 0);
+    
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, _blurColorTextures[0]); // Use the final blurred texture
+    _combineShader->setUniformInt("bloomTexture", 1);
+    
+    // Set glow parameters
+    _combineShader->setUniformBool("enableGlow", _enableGlow);
+    _combineShader->setUniformFloat("glowIntensity", _glowIntensity);
+    
+    // Render screen quad
+    glBindVertexArray(_quadVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+}
+
+void FinalSceneApp::cleanupGlowFramebuffers() {
+    glDeleteFramebuffers(1, &_sceneFramebuffer);
+    glDeleteTextures(1, &_sceneColorTexture);
+    glDeleteTextures(1, &_sceneDepthTexture);
+    
+    glDeleteFramebuffers(1, &_brightFramebuffer);
+    glDeleteTextures(1, &_brightColorTexture);
+    
+    glDeleteFramebuffers(2, _blurFramebuffers);
+    glDeleteTextures(2, _blurColorTextures);
+    
+    glDeleteVertexArrays(1, &_quadVAO);
+    glDeleteBuffers(1, &_quadVBO);
+}
+
+void FinalSceneApp::updateDynamicPointLights() {
+    // Clear existing dynamic point lights
+    _dynamicPointLights.clear();
+    
+    // Get current entity position in world coordinates
+    glm::vec3 entityPos = _entity->transform.position;
+    
+    // Convert world position to map coordinates
+    // Map coordinate system: world position = (mapX - 150, y, mapZ - 150)
+    // So: mapX = worldX + 150, mapZ = worldZ + 150
+    int centerMapX = static_cast<int>(entityPos.x + 150);
+    int centerMapZ = static_cast<int>(entityPos.z + 150);
+    
+    // Define search area (11x11 around entity)
+    const int searchRadius = 5; // 11x11 area
+    
+    // Debug output for light detection
+    static float lightDebugTimer = 0.0f;
+    lightDebugTimer += _deltaTime;
+    bool shouldDebug = lightDebugTimer >= 3.0f; // Debug every 3 seconds
+    
+    if (shouldDebug) {
+        std::cout << "=== Dynamic Point Lights Debug ===" << std::endl;
+        std::cout << "Entity world position: (" << std::fixed << std::setprecision(1) 
+                  << entityPos.x << ", " << entityPos.y << ", " << entityPos.z << ")" << std::endl;
+        std::cout << "Entity map position: (" << centerMapX << ", " << centerMapZ << ")" << std::endl;
+        lightDebugTimer = 0.0f;
+    }
+    
+    // Scan the area around the player
+    for (int dx = -searchRadius; dx <= searchRadius; dx++) {
+        for (int dz = -searchRadius; dz <= searchRadius; dz++) {
+            int mapX = centerMapX + dx;
+            int mapZ = centerMapZ + dz;
+            
+            // Check bounds
+            if (mapX >= 0 && mapX < MAP_LENGTH && mapZ >= 0 && mapZ < MAP_LENGTH) {
+                // Check if this position has a light (value == 2)
+                if (map[mapZ][mapX] == 2) {
+                    // Convert map coordinates back to world coordinates
+                    float worldX = static_cast<float>(mapX) - 150.0f;
+                    float worldZ = static_cast<float>(mapZ) - 150.0f;
+                    float worldY = 3.0f; // Height as specified
+                    
+                    // Create point light at this position
+                    glm::vec3 lightPos(worldX, worldY, worldZ);
+                    _dynamicPointLights.emplace_back(lightPos, glm::vec3(1.0f, 1.0f, 0.9f), 2.0f);
+                    
+                    if (shouldDebug) {
+                        std::cout << "Found light at map(" << mapX << ", " << mapZ << ") -> world(" 
+                                  << worldX << ", " << worldY << ", " << worldZ << ")" << std::endl;
+                    }
+                    
+                    // Limit number of lights to prevent performance issues
+                    if (_dynamicPointLights.size() >= MAX_POINT_LIGHTS) {
+                        if (shouldDebug) {
+                            std::cout << "Reached maximum point lights limit: " << MAX_POINT_LIGHTS << std::endl;
+                        }
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    
+    if (shouldDebug) {
+        std::cout << "Total dynamic point lights: " << _dynamicPointLights.size() << std::endl;
+    }
+}
+
+void FinalSceneApp::updateMitaPointLights() {
+    // Clear existing mita point lights
+    _mitaPointLights.clear();
+    
+    // Get current mita position in world coordinates
+    glm::vec3 mitaPos = _mita->transform.position;
+    
+    // Convert world position to map coordinates
+    // Map coordinate system: world position = (mapX - 150, y, mapZ - 150)
+    // So: mapX = worldX + 150, mapZ = worldZ + 150
+    int centerMapX = static_cast<int>(mitaPos.x + 150);
+    int centerMapZ = static_cast<int>(mitaPos.z + 150);
+    
+    // Define search area (11x11 around mita)
+    const int searchRadius = 5; // 11x11 area
+    
+    // Debug output for light detection
+    static float lightDebugTimer = 0.0f;
+    lightDebugTimer += _deltaTime;
+    bool shouldDebug = lightDebugTimer >= 3.0f; // Debug every 3 seconds
+    
+    if (shouldDebug) {
+        std::cout << "=== Mita Point Lights Debug ===" << std::endl;
+        std::cout << "Mita world position: (" << std::fixed << std::setprecision(1) 
+                  << mitaPos.x << ", " << mitaPos.y << ", " << mitaPos.z << ")" << std::endl;
+        std::cout << "Mita map position: (" << centerMapX << ", " << centerMapZ << ")" << std::endl;
+        lightDebugTimer = 0.0f;
+    }
+    
+    // Scan the area around the mita
+    for (int dx = -searchRadius; dx <= searchRadius; dx++) {
+        for (int dz = -searchRadius; dz <= searchRadius; dz++) {
+            int mapX = centerMapX + dx;
+            int mapZ = centerMapZ + dz;
+            
+            // Check bounds
+            if (mapX >= 0 && mapX < MAP_LENGTH && mapZ >= 0 && mapZ < MAP_LENGTH) {
+                // Check if this position has a light (value == 2)
+                if (map[mapZ][mapX] == 2) {
+                    // Convert map coordinates back to world coordinates
+                    float worldX = static_cast<float>(mapX) - 150.0f;
+                    float worldZ = static_cast<float>(mapZ) - 150.0f;
+                    float worldY = 3.0f; // Height as specified
+                    
+                    // Create point light at this position
+                    glm::vec3 lightPos(worldX, worldY, worldZ);
+                    _mitaPointLights.emplace_back(lightPos, glm::vec3(1.0f, 1.0f, 0.9f), 2.0f);
+                    
+                    if (shouldDebug) {
+                        std::cout << "Found light at map(" << mapX << ", " << mapZ << ") -> world(" 
+                                  << worldX << ", " << worldY << ", " << worldZ << ")" << std::endl;
+                    }
+                    
+                    // Limit number of lights to prevent performance issues
+                    if (_mitaPointLights.size() >= MAX_POINT_LIGHTS) {
+                        if (shouldDebug) {
+                            std::cout << "Reached maximum point lights limit for mita: " << MAX_POINT_LIGHTS << std::endl;
+                        }
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    
+    if (shouldDebug) {
+        std::cout << "Total mita point lights: " << _mitaPointLights.size() << std::endl;
+    }
+}
+
+void FinalSceneApp::setPointLightsUniforms(GLSLProgram* shader) {
+    // Set number of point lights
+    int numLights = static_cast<int>(std::min(_dynamicPointLights.size(), static_cast<size_t>(MAX_POINT_LIGHTS)));
+    shader->setUniformInt("numPointLights", numLights);
+    
+    // Set each point light's properties
+    for (int i = 0; i < numLights; i++) {
+        const auto& light = _dynamicPointLights[i];
+        
+        std::string baseName = "pointLights[" + std::to_string(i) + "]";
+        shader->setUniformVec3(baseName + ".position", light.position);
+        shader->setUniformVec3(baseName + ".color", light.color);
+        shader->setUniformFloat(baseName + ".intensity", light.intensity);
+    }
+}
+
+void FinalSceneApp::setMitaPointLightsUniforms(GLSLProgram* shader) {
+    // Set number of point lights for mita
+    int numLights = static_cast<int>(std::min(_mitaPointLights.size(), static_cast<size_t>(MAX_POINT_LIGHTS)));
+    shader->setUniformInt("numPointLights", numLights);
+    
+    // Set each point light's properties
+    for (int i = 0; i < numLights; i++) {
+        const auto& light = _mitaPointLights[i];
+        
+        std::string baseName = "pointLights[" + std::to_string(i) + "]";
+        shader->setUniformVec3(baseName + ".position", light.position);
+        shader->setUniformVec3(baseName + ".color", light.color);
+        shader->setUniformFloat(baseName + ".intensity", light.intensity);
     }
 }

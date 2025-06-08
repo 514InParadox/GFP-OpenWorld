@@ -6,6 +6,10 @@
 #include <memory>
 #include <filesystem>
 
+#include <glm/glm.hpp>
+
+class GLSLProgram;  // forward declaration for shader
+
 // Dialog configuration structure
 struct DialogConfig {
     float baseDisplayTime = 2.0f;        // Base time for each dialog group
@@ -28,10 +32,13 @@ public:
 
     
     // Draw current dialog texts
-    void drawDialogBox() const;
+    void drawDialogBox(GLSLProgram* shader) const;
     
     // Draw fading out texts
-    void drawDropText() const;
+    void drawDropText(GLSLProgram* shader) const;
+
+    // Update and draw all dialogs
+    void draw(const float &deltaTime, GLSLProgram* shader);
     
     // Get current dialog info
     size_t getCurrentDialogIndex() const;
@@ -47,6 +54,12 @@ public:
     // Configuration
     void setConfig(const DialogConfig& config);
     const DialogConfig& getConfig() const;
+
+    // 设置文本显示的基准位置
+    void setBasePosition(const glm::vec3& pos);
+
+    // 获取当前基准位置
+    glm::vec3 getBasePosition() const;
     
 private:
     // Move next dialog group from preLoad to dialogBox
@@ -90,4 +103,10 @@ private:
     
     // 配置
     DialogConfig _config;
+
+    // 文本显示的基准位置
+    glm::vec3 _basePosition{0.0f, 0.0f, 0.0f};
+
+    // 保存对话文件列表，便于 reset 重新加载
+    std::vector<std::string> _dialogFiles;
 };

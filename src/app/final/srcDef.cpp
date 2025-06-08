@@ -58,3 +58,5 @@ const std::vector<std::string> skyboxTexturePaths = {
 const std::string startInterfaceImageAddr = "resource/texture/startScene.png";
 const std::string loseInterfaceImageAddr  = "resource/texture/loseScene.png";
 const std::string winInterfaceImageAddr   = "resource/texture/winScene.png";
+
+const std::string dialogAssetPath = "resource/text/";

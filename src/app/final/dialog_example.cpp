@@ -36,11 +36,11 @@ void dialogExample() {
                   << "/" << dialogSystem.getTotalDialogCount() 
                   << " Progress: " << (dialogSystem.getCurrentDialogProgress() * 100) << "%" << std::endl;
         
-        // Draw current dialog texts
-        dialogSystem.drawDialogBox();
+        // Draw current dialog texts (no shader in this console example)
+        dialogSystem.drawDialogBox(nullptr);
         
         // Draw fading out texts
-        dialogSystem.drawDropText();
+        dialogSystem.drawDropText(nullptr);
         
         // Simulate frame rate (60 FPS)
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
@@ -70,8 +70,8 @@ void manualDialogExample() {
         dialogSystem.proceed(deltaTime);
         
         // Draw dialogs
-        dialogSystem.drawDialogBox();
-        dialogSystem.drawDropText();
+        dialogSystem.drawDialogBox(nullptr);
+        dialogSystem.drawDropText(nullptr);
         
         // Check for user input (simplified - in real game use proper input system)
         if (std::cin.get()) {
@@ -110,8 +110,8 @@ void pauseResumeExample() {
         }
         
         dialogSystem.proceed(deltaTime);
-        dialogSystem.drawDialogBox();
-        dialogSystem.drawDropText();
+        dialogSystem.drawDialogBox(nullptr);
+        dialogSystem.drawDropText(nullptr);
         
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
