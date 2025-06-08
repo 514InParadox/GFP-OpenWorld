@@ -62,6 +62,9 @@ FinalSceneApp::FinalSceneApp(const Options &options) : Application(options) {
     startInterface.reset(new Interface(getAssetFullPath(startInterfaceImageAddr)));
     loseInterface.reset(new Interface(getAssetFullPath(loseInterfaceImageAddr)));
     winInterface.reset(new Interface(getAssetFullPath(winInterfaceImageAddr)));
+
+    // Init dialog
+    _dialog.reset(new Dialog("resource/text"));
 }
 
 FinalSceneApp::~FinalSceneApp() {
@@ -900,10 +903,44 @@ void FinalSceneApp::renderSceneToFramebuffer() {
                 std::cout << "Setting " << _mitaPointLights.size() << " point lights to mita shader" << std::endl;
                 mitaLightCountTimer = 0.0f;
             }
-            
-            _animatedMita->Draw(*_mitaShader);
+              _animatedMita->Draw(*_mitaShader);
             std::cout << "draw mita at" << _animatedMita->transform.position.x << ", " << _animatedMita->transform.position.z << std::endl;
         }
+    }
+
+    // Render dialog during DuringMita state
+    if (!_dialog) {
+        std::cout << "123" << std::endl;
+    }
+    if (gameState == GameState::DuringMita && _dialog) {
+        // Use entity shader for dialog text rendering (it supports basic 3D model rendering)
+        _entityShader->use();
+        _entityShader->setUniformMat4("projection", projection);
+        _entityShader->setUniformMat4("view", view);
+        
+        // Set basic material properties for text
+        _entityShader->setUniformVec3("material.ambient", glm::vec3(0.3f));
+        _entityShader->setUniformVec3("material.diffuse", glm::vec3(1.0f));
+        _entityShader->setUniformVec3("material.specular", glm::vec3(0.5f));
+        _entityShader->setUniformVec3("material.color", glm::vec3(1.0f));
+        _entityShader->setUniformFloat("material.shininess", 32.0f);
+        
+        // Set lighting for dialog text
+        _entityShader->setUniformVec3("ambientLight.color", glm::vec3(1.0f));
+        _entityShader->setUniformFloat("ambientLight.intensity", 0.8f);
+        _entityShader->setUniformVec3("viewPosition", _camera->transform.position);
+        
+        // Disable texture for text models
+        _entityShader->setUniformBool("useTexture", false);
+        
+        // Get camera position and rotation for billboard effect
+        glm::vec3 cameraPos = _camera->transform.position;
+        glm::quat cameraRot = _camera->transform.rotation;
+        
+        // Draw dialog with camera-facing billboard effect
+        _dialog->draw(_deltaTime, _entityShader.get(), cameraPos, cameraRot);
+        
+        std::cout << "Rendered dialog during DuringMita state" << std::endl;
     }
 }
 
