@@ -16,6 +16,7 @@
 #include "dialog.hpp"
 #include "interface.hpp"
 #include "map.hpp"
+#include "audioManager.hpp"
 
 class FinalSceneApp : public Application {
 
@@ -169,6 +170,9 @@ private:
     std::unique_ptr<Interface> startInterface, loseInterface, winInterface;
 
     std::unique_ptr<SkyBox> _skybox;
+
+    // audiomanager
+    std::unique_ptr<AudioManager> _audioManager;
 
     // Time management for frame-rate independent movement
     std::chrono::time_point<std::chrono::high_resolution_clock> _lastFrameTime;
