@@ -64,7 +64,6 @@ FinalSceneApp::FinalSceneApp(const Options &options) : Application(options) {
     winInterface.reset(new Interface(getAssetFullPath(winInterfaceImageAddr)));
 
     // Init dialog
-    // _dialog.reset(new Dialog("resource/text"));
     _dialog = std::make_unique<Dialog>(getAssetFullPath(dialogAssetPath));
 
     // Init sound engine
@@ -88,18 +87,18 @@ void FinalSceneApp::handleInput() {
             if (_input.keyboard.keyStates[GLFW_KEY_ENTER] != GLFW_RELEASE) {
                 gameState = GameState::BeforeMita;
                 playerPosition = glm::vec2(playerCoord.first - 150, playerCoord.second - 150);
-                // playerPosition = glm::vec2(-242, -160);
                 _entityLogic.setEntityPos(glm::vec2(0.0f, 0.0f));
                 _entityLogic.Status = EntityStatus::PATROL;
             }
-            
             return;
-            // break;
         case GameState::LoseInterface:
-            if (_input.mouse.press.left)
+            if (_input.mouse.press.left) {
+                _entityLogic.Status = EntityStatus::PATROL;
+                _entityLogic.setEntityPos(glm::vec2(0.0f, 0.0f));
+                playerPosition = glm::vec2(123.0f, 321.0f);
                 gameState = GameState::StartInterface;
+            }
             return;
-            // break;
         case GameState::WinInterface:
             if (_input.mouse.press.left)
                 gameState = GameState::StartInterface;
@@ -367,10 +366,13 @@ void FinalSceneApp::updateState() {
                 during_debug_remain_time = 10.0f;
             }
             break;
-        case GameState::DuringMita:
-            if (during_debug_remain_time > 0) {
-                during_debug_remain_time -= _deltaTime;
-            } else {
+            case GameState::DuringMita:
+            // if (during_debug_remain_time > 0) {
+                //     during_debug_remain_time -= _deltaTime;
+                // } else
+            _entityLogic.Status = EntityStatus::PATROL;
+            _entityLogic.setEntityPos(playerPosition + glm::vec2(30.0f, 0));
+            if (_input.keyboard.keyStates[GLFW_KEY_L] != GLFW_RELEASE) {
                 _entityLogic.setEntityPos(glm::vec2(10.0f, -10.0f));
                 _entityLogic.Status = EntityStatus::PATROL;
                 gameState = GameState::AfterMita;
@@ -852,7 +854,9 @@ void FinalSceneApp::renderSceneToFramebuffer() {
             glm::vec3 mitaToPlayer = playerPosition - _animatedMita->transform.position;
             
             // Only rotate around Y axis (yaw) to keep mita upright
-            if (glm::length(mitaToPlayer) > 0.001f) { // Avoid zero-length vector
+            auto mitaPos = _animatedMita->transform.position;
+
+            if (glm::length(mitaToPlayer) > 0.001f && distance(glm::vec2(playerPosition.x, playerPosition.z), glm::vec2(mitaPos.x, mitaPos.z)) < 10.0f) { // Avoid zero-length vector
                 mitaToPlayer.y = 0.0f; // Remove vertical component for Y-axis only rotation
                 mitaToPlayer = glm::normalize(mitaToPlayer);
                 

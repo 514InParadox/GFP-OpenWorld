@@ -33,6 +33,8 @@ Options getOptions(int argc, char* argv[]) {
     options.windowTitle = "The world's best game!!!!!";
     options.windowWidth = 1920;
     options.windowHeight = 1080;
+    // options.windowWidth = 2540;
+    // options.windowHeight = 1300;
     options.windowResizable = false;
     options.vSync = true;
     options.msaa = true;
