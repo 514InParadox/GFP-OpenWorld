@@ -10,9 +10,6 @@ glm::vec2 getCorrectPos(glm::vec2 playerPos, glm::vec2 deltaPos) {
 
     glm::vec2 normalDelta = glm::normalize(deltaPos);
 
-    // std::cout << deltaPos.x << " " << deltaPos.y << std::endl;
-    // std::cout << normalDelta.x << " " << normalDelta.y << std::endl;
-
     normalDelta *= 0.5;
 
     glm::vec2 normalFinalPos = playerPos + normalDelta;

@@ -87,10 +87,12 @@ private:
     void initAnimatedModels();
     void setupAnimations();
     void updateAnimations();
-    void updateEntityAnimation();
-    void updateMitaAnimation();
+    void updateEntityAnimation();    void updateMitaAnimation();
     void switchEntityAnimation(int animationIndex);
     void switchMitaAnimation(int animationIndex);
+    
+    // Screenshot functionality
+    void takeScreenshot();
     
     GameState gameState{GameState::StartInterface}; // Start directly in game, not interface
 
@@ -103,9 +105,9 @@ private:
 
     std::unique_ptr<Camera> _camera;
     
-    std::unique_ptr<TexModel> _texModel;
-
-    std::unique_ptr<GLSLProgram> _texShader;    std::unique_ptr<AdvancedModel> _map,
+    std::unique_ptr<TexModel> _texModel;    std::unique_ptr<GLSLProgram> _texShader;
+    
+    std::unique_ptr<AdvancedModel> _map,
                                    _gun,
                                    _light;
 
@@ -122,13 +124,11 @@ private:
     // Animation state
     int _currentEntityAnimationIndex = 0;
     int _currentMitaAnimationIndex = 0;
-
-
     std::unique_ptr<GLSLProgram> _entityShader,
                                  _mitaShader,
                                  _mapShader,
                                  _gunShader,
-                                 _emissiveShader;    
+                                 _emissiveShader;
 
     std::unique_ptr<GLSLProgram> _interfaceShader;
 
@@ -154,10 +154,9 @@ private:
     
     // Glow control variables
     bool _enableGlow = true;
-    float _glowIntensity = 0.02f;
-
-    // Dynamic point lights
-    std::vector<DynamicPointLight> _dynamicPointLights;    std::vector<DynamicPointLight> _mitaPointLights;
+    float _glowIntensity = 0.02f;    // Dynamic point lights
+    std::vector<DynamicPointLight> _dynamicPointLights;
+    std::vector<DynamicPointLight> _mitaPointLights;
     std::vector<DynamicPointLight> _cameraPointLights;
     static const int MAX_POINT_LIGHTS = 32;
 
@@ -172,13 +171,13 @@ private:
     std::unique_ptr<SkyBox> _skybox;
 
     // audiomanager
-    std::unique_ptr<AudioManager> _audioManager;
-
-    // Time management for frame-rate independent movement
+    std::unique_ptr<AudioManager> _audioManager;    // Time management for frame-rate independent movement
     std::chrono::time_point<std::chrono::high_resolution_clock> _lastFrameTime;
     float _deltaTime = 0.0f;
 
-    glm::vec2 playerPosition;    void initShader();
+    glm::vec2 playerPosition;
+    
+    void initShader();
     
     // Ray-AABB intersection test for shooting
     bool rayIntersectsAABB(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, const BoundingBox& aabb) const;

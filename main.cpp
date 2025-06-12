@@ -59,23 +59,24 @@ int main(int argc, char *argv[]) {
     Options options = getOptions(argc, argv);
 
     try {
-        // ModelImportApp app(options);
         // TriangleApp app(options);
         // InitSceneApp app(options);
-        //  CameraTestApp app(options);
-         //InitSceneApp app(options);
-         //CameraTestApp app(options);
+        // CameraTestApp app(options);
+        // InitSceneApp app(options);
+        // CameraTestApp app(options);
         // TestPhysicsApp app(options);
         // TestPhysicsTwoApp app(options);
         // TestPhysicsThreeApp app(options);
-        //lightingTestApp app(options);
+        // lightingTestApp app(options);
         // lightingTestApp2 app(options);
         // GlowTestApp app(options);
         // AudioTestApp app(options);
         // AudioPlayerTestApp app(options);
         // MinimalAudioTestApp app(options);
-        FinalSceneApp app(options);
         // SkeletalAnimationApp app(options);
+        
+        // ModelImportApp app(options);
+        FinalSceneApp app(options);
         app.run();
     } catch (std::runtime_error& e) {
         std::cerr << e.what() << std::endl;
