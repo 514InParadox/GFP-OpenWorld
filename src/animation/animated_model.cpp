@@ -254,8 +254,6 @@ std::vector<std::shared_ptr<Texture2D>> AnimatedModel::loadMaterialTextures(aiMa
         std::string filename = std::string(str.C_Str());
         std::string texturePath = filename;
         
-        std::cout << "Attempting to load texture: " << texturePath << " (type: " << typeName << ")" << std::endl;
-        
         // Helper function to extract filename from path
         auto extractFilename = [](const std::string& path) -> std::string {
             size_t lastSlash = path.find_last_of("/\\");

@@ -42,9 +42,6 @@
     <ClCompile Include="src\app\initSceneApp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="include\tinyobjloader\tiny_obj_loader.cc">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="src\utils\camera.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -175,6 +172,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="src\animation\bone.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\final\audioManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -354,6 +354,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\animation\bone.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\final\audioManager.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

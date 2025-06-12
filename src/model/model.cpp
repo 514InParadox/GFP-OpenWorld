@@ -5,8 +5,6 @@
 #include <fstream>
 #include <sstream>
 
-#include <tinyobjloader/tiny_obj_loader.h>
-
 #include "model/model.hpp"
 #include "utils/physics.hpp"
 
