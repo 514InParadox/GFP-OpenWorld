@@ -8,13 +8,23 @@ OpenGL 后室游戏 —— 浙江大学《计算机图形学》期末大作业
 
 ## 游戏画面
 
+实体及其打光
+
 ![实体渲染](screenshot/entity.png)
+
+玩家与实体交互
 
 ![被实体抓住](screenshot/entity.gif)
 
+米塔及其待机动作
+
 ![待机小米塔](screenshot/mita.gif)
 
+打 gun
+
 ![打 gun](screenshot/gun.png)
+
+地图摄影作品比赛一等奖
 
 ![地图渲染](screenshot/map.png)
 
